@@ -1,11 +1,3 @@
-Here’s a **clean, professional `README.md`** that matches your project’s maturity and design thinking.
-It explains **what the system is**, **why it exists**, and **how it’s structured**, without locking you into premature details.
-
-You can copy–paste this directly into `README.md`.
-
----
-
-````md
 # Academy SMSM – Backend
 
 Backend system for an interactive course registration platform, designed to support a **single-page, state-driven student registration flow** with real-time schedule selection and admin review.
