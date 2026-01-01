@@ -162,22 +162,3 @@ Draft → TimeslotSelected → Submitted → Accepted / Rejected
 This backend is designed to support a **single-page, animated frontend** where all user interactions are driven by backend state, not navigation.
 
 Business rules live in **services**, not controllers.
-
----
-
-## 📄 License
-
-Private / Internal Project
-
-```
-
----
-
-If you want, next we can:
-- Refine this README for **public GitHub**
-- Add **API section placeholders**
-- Add **Docker + environment setup**
-- Add **state machine diagram explanation**
-
-Just tell me what you want to polish next.
-```
