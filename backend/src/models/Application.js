@@ -1,42 +1,47 @@
+// src/models/Application.js
 const mongoose = require('mongoose');
 
 const applicationSchema = new mongoose.Schema({
-  student: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Studentinfo',
-    required: true
-  },
+    student: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Studentinfo',
+        required: true
+    },
+    group: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Group',
+        required: true
+    },
+    timeslot: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Timeslot'
+    },
 
-  subject: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Subject',
-    required: true
-  },
+    status: {
+        type: String,
+        enum: [
+            'Draft',
+            'ScheduleSelected',
+            'Submitted',
+            'Pending',
+            'Accepted',
+            'Rejected'
+        ],
+        default: 'Draft'
+    },
 
-  group: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Group',
-    required: true
-  },
+    // Payment
+    paymentProof: {
+        type: String // file path
+    },
 
-  timeslot: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Timeslot',
-    default: null
-  },
-
-  status: {
-    type: String,
-    enum: [
-      'Draft',
-      'TimeslotSelected',
-      'Submitted',
-      'Accepted',
-      'Rejected'
-    ],
-    default: 'Draft'
-  }
-
+    adminModified: {
+        type: Boolean,
+        default: false
+    },
+    adminNotes: {
+        type: String
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Application', applicationSchema);
