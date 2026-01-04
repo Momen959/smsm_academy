@@ -10,6 +10,7 @@ const API_CONFIG = {
   USER: {
     SUBJECTS: '/user/subjects',
     APPLICATIONS: '/user/applications',
+    OPTIONS: '/user/options',
   },
   
   // Admin endpoints (for future use)
@@ -102,6 +103,13 @@ class ApiService {
    */
   async getSubjects() {
     return this.get(API_CONFIG.USER.SUBJECTS);
+  }
+
+  /**
+   * Fetch dropdown options (group types, education types, grades)
+   */
+  async getOptions() {
+    return this.get(API_CONFIG.USER.OPTIONS);
   }
 
   /**

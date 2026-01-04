@@ -26,8 +26,9 @@ class SmSmAcademy {
     // Initialize language switching
     this.initLanguageToggle();
 
-    // Load subjects from API
+    // Load subjects and options from API
     this.loadSubjects();
+    this.loadOptions();
 
     // Listen for registration complete
     document.addEventListener('registrationComplete', (e) => this.handleRegistrationComplete(e));
@@ -124,6 +125,73 @@ class SmSmAcademy {
       console.error('   Make sure the backend server is running on http://localhost:5000');
       this.sidebar.loadSubjects([]);
     }
+  }
+
+  /**
+   * Load dropdown options from API (group types, education types, grades)
+   */
+  async loadOptions() {
+    try {
+      const options = await window.apiService.getOptions();
+      
+      if (options) {
+        // Store options for later use
+        this.options = options;
+        
+        // Populate Group Type dropdown
+        if (options.groupTypes) {
+          this.populateSelect('groupType', options.groupTypes, 'Select type...', 'اختر النوع...');
+        }
+        
+        // Populate Group Level dropdown
+        if (options.groupLevels) {
+          this.populateSelect('groupLevel', options.groupLevels, 'Select level...', 'اختر المستوى...');
+        }
+        
+        // Populate Education Type dropdown
+        if (options.educationTypes) {
+          this.populateSelect('educationType', options.educationTypes, 'Select type...', 'اختر النوع...');
+        }
+        
+        // Populate Grade dropdown
+        if (options.grades) {
+          this.populateSelect('studentGrade', options.grades, 'Select your grade...', 'اختر الصف...');
+        }
+        
+        console.log('✅ Options loaded from API');
+      }
+    } catch (error) {
+      console.error('❌ Could not load options from API:', error.message);
+    }
+  }
+
+  /**
+   * Populate a select element with options from API
+   */
+  populateSelect(selectId, options, defaultLabelEn, defaultLabelAr) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    // Clear existing options except the first one
+    select.innerHTML = '';
+    
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = this.currentLang === 'ar' ? defaultLabelAr : defaultLabelEn;
+    defaultOption.setAttribute('data-en', defaultLabelEn);
+    defaultOption.setAttribute('data-ar', defaultLabelAr);
+    select.appendChild(defaultOption);
+    
+    // Add options from API
+    options.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = this.currentLang === 'ar' ? opt.labelAr : opt.labelEn;
+      option.setAttribute('data-en', opt.labelEn);
+      option.setAttribute('data-ar', opt.labelAr);
+      select.appendChild(option);
+    });
   }
 
   /**
