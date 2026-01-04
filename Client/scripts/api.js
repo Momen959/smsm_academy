@@ -11,6 +11,8 @@ const API_CONFIG = {
     SUBJECTS: '/user/subjects',
     APPLICATIONS: '/user/applications',
     OPTIONS: '/user/options',
+    TIMESLOTS: '/user/timeslots',
+    TIMESLOTS_GRID: '/user/timeslots/grid',
   },
   
   // Admin endpoints (for future use)
@@ -110,6 +112,32 @@ class ApiService {
    */
   async getOptions() {
     return this.get(API_CONFIG.USER.OPTIONS);
+  }
+
+  /**
+   * Fetch timeslots (optionally filtered by subject/group type)
+   */
+  async getTimeslots(subjectId = null, groupType = null) {
+    let query = '';
+    const params = [];
+    if (subjectId) params.push(`subjectId=${subjectId}`);
+    if (groupType) params.push(`groupType=${groupType}`);
+    if (params.length > 0) query = '?' + params.join('&');
+    
+    return this.get(API_CONFIG.USER.TIMESLOTS + query);
+  }
+
+  /**
+   * Fetch timeslots in grid format for timetable display
+   */
+  async getTimeslotGrid(subjectId = null, groupType = null) {
+    let query = '';
+    const params = [];
+    if (subjectId) params.push(`subjectId=${subjectId}`);
+    if (groupType) params.push(`groupType=${groupType}`);
+    if (params.length > 0) query = '?' + params.join('&');
+    
+    return this.get(API_CONFIG.USER.TIMESLOTS_GRID + query);
   }
 
   /**

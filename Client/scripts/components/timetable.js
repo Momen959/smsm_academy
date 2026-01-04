@@ -23,15 +23,37 @@ class TimetableComponent {
         this.hide();
       }
     });
-
-    // Generate default time slots
-    this.generateTimeSlots();
   }
 
   /**
-   * Generate sample time slots
+   * Load time slots from API
    */
-  generateTimeSlots() {
+  async loadTimeSlots() {
+    try {
+      // Get active subject for filtering
+      const activeSubject = window.stateMachine.getActiveSubject();
+      const subjectId = activeSubject?.id || null;
+      
+      // Fetch from API
+      const response = await window.apiService.getTimeslotGrid(subjectId);
+      
+      if (response && response.timeSlots && response.timeSlots.length > 0) {
+        this.timeSlots = response.timeSlots;
+        console.log('✅ Timeslots loaded from API');
+        return;
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not load timeslots from API, using generated data:', error.message);
+    }
+    
+    // Fallback: generate default time slots if API fails or returns empty
+    this.generateFallbackTimeSlots();
+  }
+
+  /**
+   * Generate fallback time slots (only used if API fails)
+   */
+  generateFallbackTimeSlots() {
     const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
     const times = [
       { start: '08:00', end: '10:00', label: '8-10 AM' },
@@ -54,7 +76,7 @@ class TimetableComponent {
         teacher: teachers[Math.floor(Math.random() * teachers.length)],
         capacity: Math.floor(Math.random() * 20) + 5,
         enrolled: Math.floor(Math.random() * 25),
-        available: Math.random() > 0.2 // 80% chance of being available
+        available: Math.random() > 0.2
       }))
     }));
 
@@ -116,8 +138,13 @@ class TimetableComponent {
   /**
    * Show the timetable
    */
-  show() {
+  async show() {
     this.selectedSlot = null;
+    
+    // Load timeslots from API
+    await this.loadTimeSlots();
+    
+    // Render the grid
     this.render();
     
     // Expand container
