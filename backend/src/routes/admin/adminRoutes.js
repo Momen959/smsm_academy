@@ -6,7 +6,7 @@ const teacherController = require('../../controllers/admin/teacher');
 const timeslotController = require('../../controllers/admin/timeslot');
 const applicationController = require('../../controllers/admin/application');
 const authController = require('../../controllers/admin/adminAuth');
-const authMiddleware = require('../../middlewares/verifyAdmin');
+const authMiddleware = require('../../middlewares/adminAuth');
 
 // Auth
 router.post('/login', authController.login);
@@ -20,6 +20,7 @@ router.delete('/subjects/:id', authMiddleware, subjectController.deleteSubject);
 // Groups
 router.post('/groups', authMiddleware, groupController.createGroup);
 router.get('/groups', authMiddleware, groupController.getGroups);
+router.get('/groups/:id', authMiddleware, groupController.getGroup);
 router.put('/groups/:id', authMiddleware, groupController.updateGroup);
 router.delete('/groups/:id', authMiddleware, groupController.deleteGroup);
 
@@ -36,6 +37,7 @@ router.put('/timeslots/:id', authMiddleware, timeslotController.updateTimeslot);
 router.delete('/timeslots/:id', authMiddleware, timeslotController.deleteTimeslot);
 
 // Applications
+router.get('/applications', authMiddleware, applicationController.getPendingApplications);
 router.put('/applications/:id/status', authMiddleware, applicationController.reviewApplication);
 router.put('/applications/:id/timeslot', authMiddleware, applicationController.changeTimeslot);
 

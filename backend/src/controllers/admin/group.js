@@ -30,8 +30,12 @@ exports.getGroup = async (req, res) => {
 };
 
 exports.updateGroup = async (req, res) => {
+    if (!req.body || Object.keys(req.body).length === 0) {
+        return res.status(400).json({ success: false, message: 'No data provided for update' });
+    }
     try {
         const group = await GroupService.updateGroup(req.params.id, req.body);
+
         if (!group) return res.status(404).json({ success: false, message: 'Group not found' });
         res.json({ success: true, group });
     } catch (err) {

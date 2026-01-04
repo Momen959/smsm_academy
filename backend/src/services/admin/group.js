@@ -3,12 +3,22 @@ const Subject = require('../../models/Subject');
 
 class GroupService {
     static async createGroup({ subjectId, type, capacity }) {
-        const subject = await Subject.findById(subjectId);
-        if (!subject) throw new Error('Subject not found');
-
-        const group = new Group({ subject: subjectId, type, capacity });
-        return group.save();
+    if (!subjectId) {
+        throw new Error('subjectId is required');
     }
+
+    const subject = await Subject.findById(subjectId);
+    if (!subject) {
+        throw new Error('Subject not found');
+    }
+
+    return Group.create({
+        subject: subjectId,
+        type,
+        capacity
+    });
+}
+
 
     static async getAllGroups() {
         return Group.find().populate('subject', 'name');
@@ -19,7 +29,7 @@ class GroupService {
     }
 
     static async updateGroup(id, data) {
-        return Group.findByIdAndUpdate(id, data, { new: true });
+        return Group.findByIdAndUpdate(id, data, { new: true, runValidators: true });
     }
 
     static async deleteGroup(id) {

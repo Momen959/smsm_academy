@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 const groupSchema = new mongoose.Schema({
     subject: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Subject', required: true 
+        ref: 'Subject', 
+        required: true 
     },
     type: { 
         type: String, 
