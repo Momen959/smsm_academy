@@ -93,9 +93,35 @@ class SmSmAcademy {
   }
 
   /**
-   * Load sample subject data
+   * Load subjects from API (with fallback to sample data)
    */
-  loadSampleData() {
+  async loadSampleData() {
+    // Color palette for subjects
+    const colorPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#6366f1'];
+    
+    try {
+      // Try to fetch from API
+      const apiSubjects = await window.apiService.getSubjects();
+      
+      if (apiSubjects && apiSubjects.length > 0) {
+        // Transform API data to frontend format
+        const subjects = apiSubjects.map((subject, index) => ({
+          id: subject._id,
+          name: subject.name,
+          icon: subject.name.charAt(0).toUpperCase(),
+          meta: this.currentLang === 'ar' ? 'مجموعات متاحة' : 'Groups available',
+          color: colorPalette[index % colorPalette.length]
+        }));
+        
+        this.sidebar.loadSubjects(subjects);
+        console.log('✅ Subjects loaded from API');
+        return;
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not load subjects from API, using fallback data:', error.message);
+    }
+    
+    // Fallback to hardcoded data if API fails
     const subjects = [
       {
         id: 'math',
