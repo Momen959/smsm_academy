@@ -26,8 +26,8 @@ class SmSmAcademy {
     // Initialize language switching
     this.initLanguageToggle();
 
-    // Load sample subjects
-    this.loadSampleData();
+    // Load subjects from API
+    this.loadSubjects();
 
     // Listen for registration complete
     document.addEventListener('registrationComplete', (e) => this.handleRegistrationComplete(e));
@@ -89,18 +89,18 @@ class SmSmAcademy {
     });
 
     // Reload subjects with current language
-    this.loadSampleData();
+    this.loadSubjects();
   }
 
   /**
-   * Load subjects from API (with fallback to sample data)
+   * Load subjects from API (no fallback - backend required)
    */
-  async loadSampleData() {
+  async loadSubjects() {
     // Color palette for subjects
     const colorPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#6366f1'];
     
     try {
-      // Try to fetch from API
+      // Fetch from API
       const apiSubjects = await window.apiService.getSubjects();
       
       if (apiSubjects && apiSubjects.length > 0) {
@@ -114,74 +114,16 @@ class SmSmAcademy {
         }));
         
         this.sidebar.loadSubjects(subjects);
-        console.log('✅ Subjects loaded from API');
-        return;
+        console.log('✅ Subjects loaded from API:', subjects.length);
+      } else {
+        console.warn('⚠️ No subjects found in database');
+        this.sidebar.loadSubjects([]);
       }
     } catch (error) {
-      console.warn('⚠️ Could not load subjects from API, using fallback data:', error.message);
+      console.error('❌ Could not load subjects from API:', error.message);
+      console.error('   Make sure the backend server is running on http://localhost:5000');
+      this.sidebar.loadSubjects([]);
     }
-    
-    // Fallback to hardcoded data if API fails
-    const subjects = [
-      {
-        id: 'math',
-        name: this.currentLang === 'ar' ? 'الرياضيات' : 'Mathematics',
-        icon: 'M',
-        meta: this.currentLang === 'ar' ? '12 مجموعة متاحة' : '12 groups available',
-        color: '#3b82f6'
-      },
-      {
-        id: 'physics',
-        name: this.currentLang === 'ar' ? 'الفيزياء' : 'Physics',
-        icon: 'P',
-        meta: this.currentLang === 'ar' ? '8 مجموعات متاحة' : '8 groups available',
-        color: '#8b5cf6'
-      },
-      {
-        id: 'chemistry',
-        name: this.currentLang === 'ar' ? 'الكيمياء' : 'Chemistry',
-        icon: 'C',
-        meta: this.currentLang === 'ar' ? '10 مجموعات متاحة' : '10 groups available',
-        color: '#10b981'
-      },
-      {
-        id: 'biology',
-        name: this.currentLang === 'ar' ? 'الأحياء' : 'Biology',
-        icon: 'B',
-        meta: this.currentLang === 'ar' ? '6 مجموعات متاحة' : '6 groups available',
-        color: '#f59e0b'
-      },
-      {
-        id: 'english',
-        name: this.currentLang === 'ar' ? 'اللغة الإنجليزية' : 'English',
-        icon: 'E',
-        meta: this.currentLang === 'ar' ? '15 مجموعة متاحة' : '15 groups available',
-        color: '#ef4444'
-      },
-      {
-        id: 'arabic',
-        name: this.currentLang === 'ar' ? 'اللغة العربية' : 'Arabic',
-        icon: 'A',
-        meta: this.currentLang === 'ar' ? '9 مجموعات متاحة' : '9 groups available',
-        color: '#06b6d4'
-      },
-      {
-        id: 'french',
-        name: this.currentLang === 'ar' ? 'اللغة الفرنسية' : 'French',
-        icon: 'F',
-        meta: this.currentLang === 'ar' ? '5 مجموعات متاحة' : '5 groups available',
-        color: '#ec4899'
-      },
-      {
-        id: 'german',
-        name: this.currentLang === 'ar' ? 'اللغة الألمانية' : 'German',
-        icon: 'G',
-        meta: this.currentLang === 'ar' ? '4 مجموعات متاحة' : '4 groups available',
-        color: '#6366f1'
-      }
-    ];
-
-    this.sidebar.loadSubjects(subjects);
   }
 
   /**
