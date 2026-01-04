@@ -16,7 +16,7 @@ const Subject = require('./models/Subject');
 const Teacher = require('./models/Teacher');
 const Group = require('./models/group');
 const Timeslot = require('./models/Timeslot');
-const Admin = require('./models/admin/Admin');
+const Admin = require('./models/admin/AdminUser');
 const bcrypt = require('bcryptjs');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/academy_smsm';
