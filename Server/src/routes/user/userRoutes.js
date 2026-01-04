@@ -1,13 +1,9 @@
-// src/routes/user/application.js
+// src/routes/user/userRoutes.js
 const express = require('express');
 const router = express.Router();
 const applicationController = require('../../controllers/user/application');
-<<<<<<< HEAD
 const subjectController = require('../../controllers/user/subject');
 const optionsController = require('../../controllers/user/options');
-=======
-const subjectController = require('../../controllers/user/subject')
->>>>>>> cdfb1c073f1c496d9b9435f5a605b477657820d4
 const upload = require('../../middlewares/upload');
 
 // 1️⃣ Create draft application
@@ -23,14 +19,13 @@ router.put(
   applicationController.submitApplication
 );
 
+// Combined endpoint - creates application with all data including file
+router.post('/applications/submit', upload.single('paymentProof'), applicationController.createAndSubmit);
+
 // 4️⃣ Get active subjects
 router.get('/subjects', subjectController.getActiveSubjects);
 
-<<<<<<< HEAD
-// options for dropdowns (group types, education types, grades)
+// 5️⃣ Get options for dropdowns (group types, education types, grades)
 router.get('/options', optionsController.getOptions);
-=======
->>>>>>> cdfb1c073f1c496d9b9435f5a605b477657820d4
 
 module.exports = router;
-
