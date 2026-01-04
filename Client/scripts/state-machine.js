@@ -4,7 +4,6 @@
  */
 
 const SubjectState = {
-  IDLE: 'idle',
   DRAFT: 'draft',
   SCHEDULE_SELECTED: 'schedule_selected',
   SUBMITTED: 'submitted',

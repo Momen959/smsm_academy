@@ -153,8 +153,9 @@ class SmSmAcademy {
           this.populateSelect('educationType', options.educationTypes, 'Select type...', 'اختر النوع...');
         }
         
-        // Populate Grade dropdown
+        // Populate Grade dropdowns (config bar and registration form)
         if (options.grades) {
+          this.populateSelect('configGrade', options.grades, 'Select grade...', 'اختر الصف...');
           this.populateSelect('studentGrade', options.grades, 'Select your grade...', 'اختر الصف...');
         }
         
