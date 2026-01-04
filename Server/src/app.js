@@ -1,7 +1,15 @@
 const express = require('express');
 const path = require('path');
+const cors = require('cors');
 
 const app = express();
+
+// Enable CORS for frontend
+app.use(cors({
+    origin: '*', // Allow all origins (you can restrict this in production)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Global middleware
 app.use(express.json());

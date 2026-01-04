@@ -134,7 +134,7 @@ class FormComponent {
   /**
    * Handle form submission
    */
-  handleSubmit(event) {
+  async handleSubmit(event) {
     event.preventDefault();
 
     // Validate form
@@ -143,8 +143,21 @@ class FormComponent {
       return;
     }
 
-    // Collect form data
-    const formData = {
+    // Disable submit button and show loading state
+    this.submitBtn.disabled = true;
+    const originalText = this.submitBtn.querySelector('span').textContent;
+    this.submitBtn.querySelector('span').textContent = 'Submitting...';
+
+    // Get active subject and config
+    const activeSubject = window.stateMachine.getActiveSubject();
+    if (!activeSubject) {
+      this.submitBtn.disabled = false;
+      this.submitBtn.querySelector('span').textContent = originalText;
+      return;
+    }
+
+    // Collect form data for local state
+    const localFormData = {
       fullName: document.getElementById('fullName').value,
       email: document.getElementById('email').value,
       phone: document.getElementById('phone').value,
@@ -152,26 +165,52 @@ class FormComponent {
       paymentFile: this.fileInput.files[0]
     };
 
-    // Update state machine
-    const activeSubject = window.stateMachine.getActiveSubject();
-    if (activeSubject) {
-      window.stateMachine.setFormData(activeSubject.id, formData);
-      
-      // Submit registration
-      if (window.stateMachine.submitRegistration(activeSubject.id)) {
-        // Hide form
-        this.hide();
-        
-        // Show success feedback
-        this.showSuccessMessage();
-        
-        // Refresh registered subjects list
-        const event = new CustomEvent('registrationComplete', {
-          detail: { subjectId: activeSubject.id }
-        });
-        document.dispatchEvent(event);
-      }
+    // Create FormData for API submission (with file)
+    const apiFormData = new FormData();
+    apiFormData.append('fullName', localFormData.fullName);
+    apiFormData.append('email', localFormData.email);
+    apiFormData.append('phone', localFormData.phone);
+    apiFormData.append('grade', localFormData.grade);
+    apiFormData.append('subjectId', activeSubject.id);
+    apiFormData.append('groupType', activeSubject.config?.groupType || '');
+    apiFormData.append('groupLevel', activeSubject.config?.groupLevel || '');
+    apiFormData.append('educationType', activeSubject.config?.educationType || '');
+    apiFormData.append('scheduleDay', activeSubject.schedule?.day || '');
+    apiFormData.append('scheduleTime', activeSubject.schedule?.time || '');
+    
+    if (this.fileInput.files[0]) {
+      apiFormData.append('paymentProof', this.fileInput.files[0]);
     }
+
+    try {
+      // Try to submit to backend API
+      const response = await window.apiService.postFormData('/user/applications/submit', apiFormData);
+      console.log('✅ Registration submitted to API:', response);
+    } catch (error) {
+      console.warn('⚠️ Could not submit to API, saving locally:', error.message);
+    }
+
+    // Update local state machine regardless of API success
+    window.stateMachine.setFormData(activeSubject.id, localFormData);
+    
+    // Submit registration locally
+    if (window.stateMachine.submitRegistration(activeSubject.id)) {
+      // Hide form
+      this.hide();
+      
+      // Show success feedback
+      this.showSuccessMessage();
+      
+      // Refresh registered subjects list
+      const completeEvent = new CustomEvent('registrationComplete', {
+        detail: { subjectId: activeSubject.id }
+      });
+      document.dispatchEvent(completeEvent);
+    }
+
+    // Restore button state
+    this.submitBtn.disabled = false;
+    this.submitBtn.querySelector('span').textContent = originalText;
   }
 
   /**
