@@ -115,11 +115,12 @@ exports.getTimeslotGrid = async (req, res) => {
                         teacher: slot.teacher?.name || 'TBA',
                         capacity: slot.maxCapacity || 20,
                         enrolled: slot.registeredStudents?.length || 0,
-                        available: (slot.registeredStudents?.length || 0) < (slot.maxCapacity || 20)
+                        available: (slot.registeredStudents?.length || 0) < (slot.maxCapacity || 20),
+                        hasSlot: true
                     };
                 }
 
-                // Return empty slot
+                // Return empty slot (no timeslot scheduled for this day/time)
                 return {
                     day,
                     time: time.label,
@@ -128,7 +129,9 @@ exports.getTimeslotGrid = async (req, res) => {
                     teacher: null,
                     capacity: 0,
                     enrolled: 0,
-                    available: false
+                    available: false,
+                    hasSlot: false,
+                    isEmpty: true
                 };
             })
         }));

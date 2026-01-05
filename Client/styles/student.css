@@ -729,6 +729,17 @@ html[dir="rtl"] .subject-item {
   cursor: not-allowed;
 }
 
+.timetable-slot.empty {
+  background: var(--color-gray-50);
+  color: var(--color-gray-300);
+  cursor: default;
+}
+
+.timetable-slot.empty .slot-empty {
+  font-size: var(--text-lg);
+  color: var(--color-gray-300);
+}
+
 .timetable-slot.selected {
   background: var(--color-primary);
   color: var(--color-white);
