@@ -195,49 +195,68 @@ class AdminDashboard {
       tbody.innerHTML = `
         <tr>
           <td colspan="7" style="text-align: center; padding: 2rem; color: var(--color-gray-500);">
-            No pending applications
+            No applications yet
           </td>
         </tr>
       `;
       return;
     }
     
-    tbody.innerHTML = applications.map(app => `
-      <tr data-id="${app._id}">
-        <td>
-          <div class="student-cell">
-            <div class="student-avatar">${(app.fullName || 'U')[0].toUpperCase()}</div>
-            <div class="student-info">
-              <div class="student-name">${app.fullName || 'Unknown'}</div>
-              <div class="student-email">${app.email || ''}</div>
+    tbody.innerHTML = applications.map(app => {
+      const isPending = app.status === 'pending';
+      const isAccepted = app.status === 'accepted';
+      const isRejected = app.status === 'rejected';
+      
+      // Status badge color
+      const statusClass = isAccepted ? 'accepted' : isRejected ? 'rejected' : 'pending';
+      const statusLabel = isAccepted ? 'Accepted' : isRejected ? 'Rejected' : 'Pending';
+      
+      // Action buttons - only show for pending applications
+      const actionButtons = isPending ? `
+        <button class="btn btn-success btn-sm approve-btn" data-id="${app._id}" title="Approve">
+          ✓
+        </button>
+        <button class="btn btn-danger btn-sm reject-btn" data-id="${app._id}" title="Reject">
+          ✕
+        </button>
+      ` : `
+        <span class="text-muted" style="font-size: 0.8rem; color: var(--color-gray-400);">
+          ${isAccepted ? '✓ Done' : '✕ Done'}
+        </span>
+      `;
+      
+      return `
+        <tr data-id="${app._id}" class="${statusClass}-row">
+          <td>
+            <div class="student-cell">
+              <div class="student-avatar">${(app.fullName || 'U')[0].toUpperCase()}</div>
+              <div class="student-info">
+                <div class="student-name">${app.fullName || 'Unknown'}</div>
+                <div class="student-email">${app.email || ''}</div>
+              </div>
             </div>
-          </div>
-        </td>
-        <td>${app.subject?.name || 'N/A'}</td>
-        <td>${app.groupType || 'N/A'}</td>
-        <td>${app.day || ''} ${app.time || ''}</td>
-        <td>
-          <button class="btn btn-ghost btn-sm view-payment-btn" data-image="${app.paymentScreenshot || ''}">
-            View
-          </button>
-        </td>
-        <td>
-          <span class="status-badge ${app.status || 'pending'}">${app.status || 'pending'}</span>
-        </td>
-        <td>
-          <div class="action-buttons">
-            <button class="btn btn-success btn-sm approve-btn" data-id="${app._id}" title="Approve">
-              ✓
+          </td>
+          <td>${app.subject?.name || 'N/A'}</td>
+          <td>${app.groupType || 'N/A'}</td>
+          <td>${app.day || ''} ${app.time || ''}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm view-payment-btn" data-image="${app.paymentScreenshot || ''}">
+              View
             </button>
-            <button class="btn btn-danger btn-sm reject-btn" data-id="${app._id}" title="Reject">
-              ✕
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+          </td>
+          <td>
+            <span class="status-badge ${statusClass}">${statusLabel}</span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              ${actionButtons}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
     
-    // Add event listeners
+    // Add event listeners for pending applications only
     tbody.querySelectorAll('.approve-btn').forEach(btn => {
       btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'approved'));
     });
@@ -245,6 +264,30 @@ class AdminDashboard {
     tbody.querySelectorAll('.reject-btn').forEach(btn => {
       btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'rejected'));
     });
+    
+    // Add event listeners for view payment buttons
+    tbody.querySelectorAll('.view-payment-btn').forEach(btn => {
+      btn.addEventListener('click', () => this.viewPayment(btn.dataset.image));
+    });
+    
+    // Also populate the dedicated applications view table
+    const allAppsBody = document.getElementById('allApplicationsTableBody');
+    if (allAppsBody && allAppsBody !== tbody) {
+      allAppsBody.innerHTML = tbody.innerHTML;
+      
+      // Re-attach event listeners for the allApplicationsTableBody
+      allAppsBody.querySelectorAll('.approve-btn').forEach(btn => {
+        btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'approved'));
+      });
+      
+      allAppsBody.querySelectorAll('.reject-btn').forEach(btn => {
+        btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'rejected'));
+      });
+      
+      allAppsBody.querySelectorAll('.view-payment-btn').forEach(btn => {
+        btn.addEventListener('click', () => this.viewPayment(btn.dataset.image));
+      });
+    }
   }
   
   async updateApplicationStatus(id, status) {
@@ -258,6 +301,48 @@ class AdminDashboard {
       console.error('Update application error:', error);
       this.showNotification(`Error: ${error.message}`, 'error');
     }
+  }
+  
+  /**
+   * View payment proof image
+   */
+  viewPayment(imagePath) {
+    if (!imagePath) {
+      this.showNotification('No payment proof uploaded', 'info');
+      return;
+    }
+    
+    // Create or show payment modal
+    let modal = document.getElementById('paymentModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'paymentModal';
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal-container" style="max-width: 600px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Payment Proof</h3>
+            <button class="modal-close" onclick="document.getElementById('paymentModal').style.display='none'">&times;</button>
+          </div>
+          <div class="modal-body" style="padding: 1rem; text-align: center;">
+            <img id="paymentImage" src="" alt="Payment Proof" style="max-width: 100%; max-height: 70vh; border-radius: 8px;">
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    // Set image source (adjust path if needed)
+    const imgEl = document.getElementById('paymentImage');
+    imgEl.src = imagePath.startsWith('http') ? imagePath : `http://localhost:5000/${imagePath}`;
+    modal.style.display = 'flex';
+    
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
   }
   
   // ═══════════════════════════════════════════════════════
@@ -659,6 +744,7 @@ class AdminDashboard {
       groupForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = {
+          name: document.getElementById('groupName').value,
           subjectId: document.getElementById('groupSubject').value,
           type: document.getElementById('groupType').value,
           capacity: parseInt(document.getElementById('groupCapacity').value),
