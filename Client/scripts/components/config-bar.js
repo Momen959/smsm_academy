@@ -63,11 +63,30 @@ class ConfigBarComponent {
     this.activeName.textContent = subject.name;
     this.subjectInput.value = subject.name;
     
-    // Reset dropdowns
-    this.groupType.value = subject.config?.groupType || '';
-    this.groupLevel.value = subject.config?.groupLevel || '';
-    this.educationType.value = subject.config?.educationType || '';
-    this.configGrade.value = subject.config?.grade || '';
+    // Load saved config from localStorage (for persistence)
+    const savedConfig = JSON.parse(localStorage.getItem('smsmConfigData') || '{}');
+    console.log('📋 Loading saved config:', savedConfig);
+    
+    // Use saved config if subject has no config yet
+    const config = subject.config || {};
+    this.groupType.value = config.groupType || savedConfig.groupType || '';
+    this.groupLevel.value = config.groupLevel || savedConfig.groupLevel || '';
+    this.educationType.value = config.educationType || savedConfig.educationType || '';
+    this.configGrade.value = config.grade || savedConfig.grade || '';
+    
+    // Auto-apply saved config to state machine if not already set
+    if (!config.groupType && savedConfig.groupType) {
+      window.stateMachine.updateConfig(subject.id, 'groupType', savedConfig.groupType);
+    }
+    if (!config.groupLevel && savedConfig.groupLevel) {
+      window.stateMachine.updateConfig(subject.id, 'groupLevel', savedConfig.groupLevel);
+    }
+    if (!config.educationType && savedConfig.educationType) {
+      window.stateMachine.updateConfig(subject.id, 'educationType', savedConfig.educationType);
+    }
+    if (!config.grade && savedConfig.grade) {
+      window.stateMachine.updateConfig(subject.id, 'grade', savedConfig.grade);
+    }
     
     // Update status badge
     this.updateStatusBadge(subject.state);
@@ -132,6 +151,12 @@ class ConfigBarComponent {
     const activeSubject = window.stateMachine.getActiveSubject();
     if (activeSubject) {
       window.stateMachine.updateConfig(activeSubject.id, field, value);
+      
+      // Save config to localStorage for persistence
+      const savedConfig = JSON.parse(localStorage.getItem('smsmConfigData') || '{}');
+      savedConfig[field] = value;
+      localStorage.setItem('smsmConfigData', JSON.stringify(savedConfig));
+      console.log('💾 Saved config:', savedConfig);
     }
   }
 
