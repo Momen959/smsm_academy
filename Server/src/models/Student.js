@@ -8,7 +8,13 @@ const studentSchema = new mongoose.Schema({
         required: true,
         unique: true,
         match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    },
+    phone: {
+        type: String,
+        required: true,
+        match: /^(?:\+20|0)?1[0125]\d{8}$/
     }
+
 }, { timestamps: true });
 
 studentSchema.virtual('fullName').get(function() {

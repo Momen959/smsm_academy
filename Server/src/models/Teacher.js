@@ -11,10 +11,12 @@ const teacherSchema = new mongoose.Schema({
         unique: true,
         match: /.+\@.+\..+/
     },
-    phone: { 
+    phone: {
         type: String,
-        required: false
+        required: true,
+        match: /^(?:\+20|0)?1[0125]\d{8}$/
     }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Teacher', teacherSchema);
