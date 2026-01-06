@@ -205,6 +205,14 @@ exports.createAndSubmit = async (req, res) => {
 
         const application = await Application.create(applicationData);
 
+        // Add student to timeslot's registeredStudents array
+        if (timeslotId) {
+            const Timeslot = require('../../models/Timeslot');
+            await Timeslot.findByIdAndUpdate(timeslotId, {
+                $addToSet: { registeredStudents: student._id }
+            });
+        }
+
         // Populate and return
         const populatedApp = await Application.findById(application._id)
             .populate('student')

@@ -55,8 +55,24 @@ class FormComponent {
     this.summaryDay.textContent = dayNames[schedule.day] || schedule.day;
     this.summaryTime.textContent = `${schedule.time} • ${schedule.teacher}`;
 
-    // Reset form
-    this.form.reset();
+    // Load saved user data from localStorage (if any)
+    try {
+      const savedData = JSON.parse(localStorage.getItem('smsmUserData') || '{}');
+      console.log('📋 Loading saved user data:', savedData);
+      
+      const fullNameInput = document.getElementById('fullName');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('phone');
+      
+      if (savedData.fullName && fullNameInput) fullNameInput.value = savedData.fullName;
+      if (savedData.email && emailInput) emailInput.value = savedData.email;
+      if (savedData.phone && phoneInput) phoneInput.value = savedData.phone;
+    } catch (e) {
+      console.warn('Could not load saved user data:', e);
+    }
+
+    // Only reset file upload, NOT the user info fields
+    this.fileInput.value = '';
     this.filePreview.style.display = 'none';
     this.filePreview.innerHTML = '';
 
@@ -195,6 +211,15 @@ class FormComponent {
     } catch (error) {
       console.warn('⚠️ Could not submit to API, saving locally:', error.message);
     }
+
+    // Save user data to localStorage for future registrations
+    const userDataToSave = {
+      fullName: localFormData.fullName,
+      email: localFormData.email,
+      phone: localFormData.phone
+    };
+    localStorage.setItem('smsmUserData', JSON.stringify(userDataToSave));
+    console.log('💾 Saved user data to localStorage:', userDataToSave);
 
     // Update local state machine regardless of API success
     window.stateMachine.setFormData(activeSubject.id, localFormData);
