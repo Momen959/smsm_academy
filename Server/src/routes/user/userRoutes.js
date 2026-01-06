@@ -18,8 +18,6 @@ router.put(
 
 router.post('/applications/submit', upload.single('paymentProof'), applicationController.createAndSubmit);
 
-router.post('/applications/submit', upload.single('paymentProof'), applicationController.createAndSubmit);
-
 router.get('/subjects', subjectController.getActiveSubjects);
 
 router.get('/options', optionsController.getOptions);

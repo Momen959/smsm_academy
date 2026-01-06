@@ -8,15 +8,6 @@ const studentSchema = new mongoose.Schema({
         required: true,
         unique: true,
         match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    },
-    grade: {
-        type: String,
-        enum: ['KG1', 'KG2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10', 'G11', 'G12'],
-    },
-    educationType: {
-        type: String,
-        enum: ['local', 'azhar', 'national', 'international'],
-        lowercase: true
     }
 }, { timestamps: true });
 
