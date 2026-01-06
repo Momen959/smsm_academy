@@ -1,8 +1,9 @@
 // src/controllers/user/application.js
 const Application = require('../../models/Application');
 const Student = require('../../models/Student');
-const Group = require('../../models/group');
+const Group = require('../../models/Group');
 const Subject = require('../../models/Subject');
+const ConfigOption = require('../../models/ConfigOption');
 
 exports.createDraft = async (req, res) => {
     try {
@@ -57,6 +58,68 @@ exports.submitApplication = async (req, res) => {
 };
 
 /**
+ * Validate grade value against database
+ */
+async function validateGrade(grade) {
+    // Check if the grade exists in the database
+    const gradeOption = await ConfigOption.findOne({ 
+        category: 'grade', 
+        value: grade,
+        isActive: true 
+    });
+    
+    if (gradeOption) {
+        return grade;
+    }
+    
+    // If not found, try to find a matching grade (case-insensitive)
+    const allGrades = await ConfigOption.find({ category: 'grade', isActive: true });
+    const matchingGrade = allGrades.find(g => 
+        g.value.toLowerCase() === grade.toLowerCase() ||
+        g.labelEn.toLowerCase().replace(/\s+/g, '').includes(grade.toLowerCase().replace(/\s+/g, ''))
+    );
+    
+    if (matchingGrade) {
+        return matchingGrade.value;
+    }
+    
+    // Return default grade if no match found
+    console.warn(`Grade "${grade}" not found in database, using default "G1"`);
+    return 'G1';
+}
+
+/**
+ * Validate education type value against database
+ */
+async function validateEducationType(educationType) {
+    // Check if the education type exists in the database
+    const eduOption = await ConfigOption.findOne({ 
+        category: 'educationType', 
+        value: educationType?.toLowerCase(),
+        isActive: true 
+    });
+    
+    if (eduOption) {
+        return educationType.toLowerCase();
+    }
+    
+    // If not found, try to find a matching type
+    const allTypes = await ConfigOption.find({ category: 'educationType', isActive: true });
+    const matchingType = allTypes.find(t => 
+        t.value.toLowerCase() === educationType?.toLowerCase() ||
+        t.labelEn.toLowerCase() === educationType?.toLowerCase()
+    );
+    
+    if (matchingType) {
+        return matchingType.value;
+    }
+    
+    // Return default education type if no match found
+    console.warn(`Education type "${educationType}" not found in database, using default "national"`);
+    return 'national';
+}
+
+/**
  * Combined endpoint: Create student, find group, and submit application in one request
  * This is used by the frontend form submission
  */
@@ -87,25 +150,11 @@ exports.createAndSubmit = async (req, res) => {
         const firstName = nameParts[0];
         const lastName = nameParts.slice(1).join(' ') || nameParts[0];
 
-        // Map frontend grade to backend enum
-        const gradeMap = {
-            'grade7': 'G7',
-            'grade8': 'G8',
-            'grade9': 'G9',
-            'grade10': 'G10',
-            'grade11': 'G11',
-            'grade12': 'G12'
-        };
-        const mappedGrade = gradeMap[grade] || 'G10';
-
-        // Map education type
-        const eduTypeMap = {
-            'national': 'national',
-            'international': 'international',
-            'igcse': 'international',
-            'american': 'international'
-        };
-        const mappedEducationType = eduTypeMap[educationType] || 'national';
+        // Validate grade against database
+        const validatedGrade = await validateGrade(grade);
+        
+        // Validate education type against database
+        const validatedEducationType = await validateEducationType(educationType);
 
         // Find or create student
         let student = await Student.findOne({ email });
@@ -114,8 +163,8 @@ exports.createAndSubmit = async (req, res) => {
                 firstName,
                 lastName,
                 email,
-                grade: mappedGrade,
-                educationType: mappedEducationType
+                grade: validatedGrade,
+                educationType: validatedEducationType
             });
         }
 

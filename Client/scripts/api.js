@@ -13,6 +13,7 @@ const API_CONFIG = {
     OPTIONS: '/user/options',
     TIMESLOTS: '/user/timeslots',
     TIMESLOTS_GRID: '/user/timeslots/grid',
+    TIMESLOTS_CONFIG: '/user/timeslots/config',
   },
   
   // Admin endpoints (for future use)
@@ -138,6 +139,13 @@ class ApiService {
     if (params.length > 0) query = '?' + params.join('&');
     
     return this.get(API_CONFIG.USER.TIMESLOTS_GRID + query);
+  }
+
+  /**
+   * Fetch time configuration (available days and time periods)
+   */
+  async getTimeConfig() {
+    return this.get(API_CONFIG.USER.TIMESLOTS_CONFIG);
   }
 
   /**

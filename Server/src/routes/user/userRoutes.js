@@ -27,5 +27,9 @@ router.get('/timeslots', timeslotController.getTimeslots);
 
 router.get('/timeslots/grid', timeslotController.getTimeslotGrid);
 
+router.get('/timeslots/config', timeslotController.getTimeConfig);
+
 module.exports = router;
+
+
 

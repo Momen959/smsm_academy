@@ -1,8 +1,8 @@
 const Teacher = require('../../models/Teacher');
 
 class TeacherService {
-    static async createTeacher({ firstName, lastName, email, specialization }) {
-        const teacher = new Teacher({ firstName, lastName, email, specialization });
+    static async createTeacher({ name, email, phone }) {
+        const teacher = new Teacher({ name, email, phone });
         return teacher.save();
     }
 

@@ -2,8 +2,8 @@ const GroupService = require('../../services/admin/group');
 
 exports.createGroup = async (req, res) => {
     try {
-        const { subjectId, type, capacity } = req.body;
-        const group = await GroupService.createGroup({ subjectId, type, capacity });
+        const { subjectId, type, capacity, level, educationType, grade } = req.body;
+        const group = await GroupService.createGroup({ subjectId, type, capacity, level, educationType, grade });
         res.status(201).json({ success: true, group });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });

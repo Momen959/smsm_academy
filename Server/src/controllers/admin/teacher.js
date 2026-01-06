@@ -2,8 +2,8 @@ const TeacherService = require('../../services/admin/teacher');
 
 exports.createTeacher = async (req, res) => {
     try {
-        const { firstName, lastName, email, specialization } = req.body;
-        const teacher = await TeacherService.createTeacher({ firstName, lastName, email, specialization });
+        const { name, email, phone } = req.body;
+        const teacher = await TeacherService.createTeacher({ name, email, phone });
         res.status(201).json({ success: true, teacher });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });

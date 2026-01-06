@@ -68,17 +68,34 @@ class SmSmAcademy {
     
     // Set RTL for Arabic
     if (lang === 'ar') {
+      console.log('🔄 Switching to Arabic (RTL) - Native Mode');
       htmlElement.setAttribute('dir', 'rtl');
       htmlElement.setAttribute('lang', 'ar');
+      
       // Move sidebar to right
       if (sidebar) sidebar.style.order = '1';
       if (mainContent) mainContent.style.flexDirection = 'row-reverse';
+      
+      // Handle absolute positioned elements if needed
+      const langToggle = document.querySelector('.lang-toggle');
+      if (langToggle) {
+        langToggle.style.left = 'auto';
+        langToggle.style.right = '1rem';
+      }
     } else {
+      console.log('🔄 Switching to English (LTR)');
       htmlElement.setAttribute('dir', 'ltr');
       htmlElement.setAttribute('lang', 'en');
+      
       // Move sidebar to left
       if (sidebar) sidebar.style.order = '-1';
       if (mainContent) mainContent.style.flexDirection = 'row';
+      
+      const langToggle = document.querySelector('.lang-toggle');
+      if (langToggle) {
+        langToggle.style.right = 'auto';
+        langToggle.style.left = '1rem';
+      }
     }
 
     // Update all elements with data-en and data-ar attributes
@@ -105,14 +122,38 @@ class SmSmAcademy {
       const apiSubjects = await window.apiService.getSubjects();
       
       if (apiSubjects && apiSubjects.length > 0) {
+        // Subject Translations
+        const translations = {
+          'Mathematics': { ar: 'الرياضيات', en: 'Mathematics' },
+          'Math': { ar: 'الرياضيات', en: 'Math' },
+          'Physics': { ar: 'الفيزياء', en: 'Physics' },
+          'Chemistry': { ar: 'الكيمياء', en: 'Chemistry' },
+          'Biology': { ar: 'الأحياء', en: 'Biology' },
+          'English': { ar: 'اللغة الإنجليزية', en: 'English' },
+          'Arabic': { ar: 'اللغة العربية', en: 'Arabic' },
+          'French': { ar: 'اللغة الفرنسية', en: 'French' },
+          'German': { ar: 'اللغة الألمانية', en: 'German' },
+          'History': { ar: 'التاريخ', en: 'History' },
+          'Geography': { ar: 'الجغرافيا', en: 'Geography' },
+          'Science': { ar: 'العلوم', en: 'Science' },
+          'Computer': { ar: 'الحاسب الآلي', en: 'Computer' },
+          'Computer Science': { ar: 'علوم الحاسب', en: 'Computer Science' }
+        };
+
         // Transform API data to frontend format
-        const subjects = apiSubjects.map((subject, index) => ({
-          id: subject._id,
-          name: subject.name,
-          icon: subject.name.charAt(0).toUpperCase(),
-          meta: this.currentLang === 'ar' ? 'مجموعات متاحة' : 'Groups available',
-          color: colorPalette[index % colorPalette.length]
-        }));
+        const subjects = apiSubjects.map((subject, index) => {
+          // Try to find translation, fallback to original name
+          const translation = translations[subject.name] || translations[Object.keys(translations).find(k => subject.name.includes(k))];
+          const displayName = translation ? (this.currentLang === 'ar' ? translation.ar : translation.en) : subject.name;
+          
+          return {
+            id: subject._id,
+            name: displayName,
+            icon: displayName.charAt(0).toUpperCase(),
+            meta: this.currentLang === 'ar' ? 'مجموعات متاحة' : 'Groups available',
+            color: colorPalette[index % colorPalette.length]
+          };
+        });
         
         this.sidebar.loadSubjects(subjects);
         console.log('✅ Subjects loaded from API:', subjects.length);

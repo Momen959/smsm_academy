@@ -1,6 +1,52 @@
 // src/controllers/user/timeslot.js
 const Timeslot = require('../../models/Timeslot');
-const Group = require('../../models/group');
+const Group = require('../../models/Group');
+const { DayConfig, TimePeriodConfig } = require('../../models/TimeSlotConfig');
+
+// Default configurations (fallback if database is empty)
+const DEFAULT_DAYS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
+const DEFAULT_TIME_LABELS = [
+    { start: '08:00', end: '10:00', label: '8-10 AM' },
+    { start: '10:00', end: '12:00', label: '10-12 PM' },
+    { start: '12:00', end: '14:00', label: '12-2 PM' },
+    { start: '14:00', end: '16:00', label: '2-4 PM' },
+    { start: '16:00', end: '18:00', label: '4-6 PM' },
+    { start: '18:00', end: '20:00', label: '6-8 PM' }
+];
+
+/**
+ * Get days configuration from database (with fallback)
+ */
+async function getDaysConfig() {
+    try {
+        const daysFromDb = await DayConfig.getActiveDays();
+        if (daysFromDb && daysFromDb.length > 0) {
+            return daysFromDb.map(d => d.code);
+        }
+    } catch (error) {
+        console.warn('Could not load days from database:', error.message);
+    }
+    return DEFAULT_DAYS;
+}
+
+/**
+ * Get time periods configuration from database (with fallback)
+ */
+async function getTimePeriodsConfig() {
+    try {
+        const timesFromDb = await TimePeriodConfig.getActiveTimePeriods();
+        if (timesFromDb && timesFromDb.length > 0) {
+            return timesFromDb.map(t => ({
+                start: t.startTime,
+                end: t.endTime,
+                label: t.label
+            }));
+        }
+    } catch (error) {
+        console.warn('Could not load time periods from database:', error.message);
+    }
+    return DEFAULT_TIME_LABELS;
+}
 
 /**
  * Get available timeslots for a subject
@@ -83,16 +129,9 @@ exports.getTimeslotGrid = async (req, res) => {
             })
             .populate('teacher');
 
-        // Group by time
-        const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
-        const timeLabels = [
-            { start: '08:00', end: '10:00', label: '8-10 AM' },
-            { start: '10:00', end: '12:00', label: '10-12 PM' },
-            { start: '12:00', end: '14:00', label: '12-2 PM' },
-            { start: '14:00', end: '16:00', label: '2-4 PM' },
-            { start: '16:00', end: '18:00', label: '4-6 PM' },
-            { start: '18:00', end: '20:00', label: '6-8 PM' }
-        ];
+        // Get days and time periods from database
+        const days = await getDaysConfig();
+        const timeLabels = await getTimePeriodsConfig();
 
         // Create grid structure
         const grid = timeLabels.map(time => ({
@@ -142,6 +181,24 @@ exports.getTimeslotGrid = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching timeslot grid:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Get time configuration (available days and time periods)
+ */
+exports.getTimeConfig = async (req, res) => {
+    try {
+        const days = await getDaysConfig();
+        const timePeriods = await getTimePeriodsConfig();
+        
+        res.status(200).json({
+            days,
+            timePeriods
+        });
+    } catch (error) {
+        console.error('Error fetching time config:', error);
         res.status(500).json({ message: error.message });
     }
 };

@@ -11,6 +11,7 @@ class ConfigBarComponent {
     this.groupType = document.getElementById('groupType');
     this.groupLevel = document.getElementById('groupLevel');
     this.educationType = document.getElementById('educationType');
+    this.configGrade = document.getElementById('configGrade');
     this.scheduleBtn = document.getElementById('scheduleBtn');
     this.closeBtn = document.getElementById('closeSubjectBtn');
     this.activeIcon = document.getElementById('activeSubjectIcon');
@@ -30,6 +31,7 @@ class ConfigBarComponent {
     this.groupType.addEventListener('change', (e) => this.handleConfigChange('groupType', e.target.value));
     this.groupLevel.addEventListener('change', (e) => this.handleConfigChange('groupLevel', e.target.value));
     this.educationType.addEventListener('change', (e) => this.handleConfigChange('educationType', e.target.value));
+    this.configGrade.addEventListener('change', (e) => this.handleConfigChange('grade', e.target.value));
 
     // Schedule button click
     this.scheduleBtn.addEventListener('click', () => this.handleScheduleClick());
@@ -65,6 +67,7 @@ class ConfigBarComponent {
     this.groupType.value = subject.config?.groupType || '';
     this.groupLevel.value = subject.config?.groupLevel || '';
     this.educationType.value = subject.config?.educationType || '';
+    this.configGrade.value = subject.config?.grade || '';
     
     // Update status badge
     this.updateStatusBadge(subject.state);
