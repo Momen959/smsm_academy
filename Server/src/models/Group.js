@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const groupSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
     },
     subject: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -11,7 +10,6 @@ const groupSchema = new mongoose.Schema({
         required: true 
     },
 
-    // 🔹 NEW
     grade: {
         type: String,
         enum: [
@@ -21,14 +19,13 @@ const groupSchema = new mongoose.Schema({
         required: true
     },
 
-    // 🔹 NEW
     educationType: {
         type: String,
         enum: ['local', 'azhar', 'national', 'international'],
         required: true
     },
 
-    type: { 
+    type: {
         type: String,
         enum: ['classroom', 'group', 'private'],
         required: true 
@@ -47,10 +44,6 @@ const groupSchema = new mongoose.Schema({
         type: String,
         enum: ['local', 'azhar', 'national', 'international'],
         default: 'national'
-    },
-    grade: {
-        type: String,
-        default: 'G1'
     }
 }, { timestamps: true });
 

@@ -7,6 +7,10 @@ const applicationSchema = new mongoose.Schema({
         ref: 'Studentinfo',
         required: true
     },
+    subject: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subject'
+    },
     group: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Group',

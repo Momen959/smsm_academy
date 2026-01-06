@@ -7,6 +7,8 @@ class ApplicationService {
         // Validate timeslot exists
         const timeslotDoc = await Timeslot.findById(timeslot);
         if (!timeslotDoc) throw new Error('Timeslot not found');
+        
+        console.log('Timeslot Doc:', timeslotDoc);
 
         // Check if timeslot is full
         if (timeslotDoc.registeredStudents.length >= timeslotDoc.maxCapacity) {
@@ -15,6 +17,7 @@ class ApplicationService {
 
         const application = new Application({
             student,
+            subject: group.subject,
             group,
             timeslot,
             status: 'Draft'
