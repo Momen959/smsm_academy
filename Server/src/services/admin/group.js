@@ -2,7 +2,7 @@ const Group = require('../../models/Group');
 const Subject = require('../../models/Subject');
 
 class GroupService {
-    static async createGroup({ subjectId, type, capacity, level, educationType, grade }) {
+    static async createGroup({ name, subjectId, type, capacity, level, educationType, grade }) {
     if (!subjectId) {
         throw new Error('subjectId is required');
     }
@@ -13,6 +13,7 @@ class GroupService {
     }
 
     return Group.create({
+        name,
         subject: subjectId,
         type,
         capacity,
