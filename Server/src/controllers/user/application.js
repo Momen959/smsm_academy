@@ -135,7 +135,8 @@ exports.createAndSubmit = async (req, res) => {
             groupLevel,
             educationType,
             scheduleDay,
-            scheduleTime
+            scheduleTime,
+            timeslotId  // Added timeslot ID
         } = req.body;
 
         // Validate required fields
@@ -189,10 +190,11 @@ exports.createAndSubmit = async (req, res) => {
             group = await Group.findOne({});
         }
 
-        // Create application
+        // Create application with timeslot
         const applicationData = {
             student: student._id,
             group: group ? group._id : null,
+            timeslot: timeslotId || null,  // Include the timeslot ID!
             status: 'Pending'
         };
 

@@ -1,6 +1,7 @@
 /**
  * SmSm Academy - State Machine
  * Manages subject registration states and transitions
+ * Supports multiple registrations per subject
  */
 
 const SubjectState = {
@@ -44,19 +45,54 @@ const StateBadgeClass = {
 
 class SubjectStateMachine {
   constructor() {
-    this.subjects = new Map();
-    this.activeSubjectId = null;
+    this.subjects = new Map();        // Subject catalog (id -> subject info)
+    this.registrations = new Map();   // All registrations (registrationId -> registration data)
+    this.activeRegistrationId = null; // Currently active registration being edited
     this.listeners = new Map();
+    this.registrationCounter = 0;
   }
 
   /**
-   * Initialize a subject with IDLE state
+   * Initialize a subject in the catalog
    */
   initSubject(subjectId, subjectData) {
     this.subjects.set(subjectId, {
       id: subjectId,
-      ...subjectData,
-      state: SubjectState.IDLE,
+      ...subjectData
+    });
+  }
+
+  /**
+   * Get subject data from catalog
+   */
+  getSubject(subjectId) {
+    return this.subjects.get(subjectId);
+  }
+
+  /**
+   * Get all subjects from catalog
+   */
+  getAllSubjects() {
+    return Array.from(this.subjects.values());
+  }
+
+  /**
+   * Create a new registration for a subject
+   */
+  createRegistration(subjectId) {
+    const subject = this.subjects.get(subjectId);
+    if (!subject) return null;
+
+    this.registrationCounter++;
+    const registrationId = `reg_${subjectId}_${this.registrationCounter}_${Date.now()}`;
+    
+    const registration = {
+      id: registrationId,
+      subjectId: subjectId,
+      name: subject.name,
+      icon: subject.icon,
+      color: subject.color,
+      state: SubjectState.DRAFT,
       config: {
         groupType: '',
         groupLevel: '',
@@ -65,104 +101,149 @@ class SubjectStateMachine {
       },
       schedule: null,
       formData: null,
-      timestamp: null
-    });
+      timestamp: null,
+      registrationNumber: this.getRegistrationCountForSubject(subjectId) + 1
+    };
+
+    this.registrations.set(registrationId, registration);
+    return registrationId;
   }
 
   /**
-   * Get subject data
+   * Get count of registrations for a subject
    */
-  getSubject(subjectId) {
-    return this.subjects.get(subjectId);
+  getRegistrationCountForSubject(subjectId) {
+    return Array.from(this.registrations.values())
+      .filter(r => r.subjectId === subjectId).length;
   }
 
   /**
-   * Get all subjects
+   * Get all registrations for a subject
    */
-  getAllSubjects() {
-    return Array.from(this.subjects.values());
+  getRegistrationsForSubject(subjectId) {
+    return Array.from(this.registrations.values())
+      .filter(r => r.subjectId === subjectId);
   }
 
   /**
-   * Get subjects in a specific state
+   * Get registration by ID
+   */
+  getRegistration(registrationId) {
+    return this.registrations.get(registrationId);
+  }
+
+  /**
+   * Get registrations by state
    */
   getSubjectsByState(state) {
-    return this.getAllSubjects().filter(s => s.state === state);
+    return Array.from(this.registrations.values())
+      .filter(r => r.state === state);
   }
 
   /**
    * Check if transition is valid
    */
-  canTransition(subjectId, newState) {
-    const subject = this.subjects.get(subjectId);
-    if (!subject) return false;
+  canTransition(registrationId, newState) {
+    const registration = this.registrations.get(registrationId);
+    if (!registration) return false;
     
-    const allowedTransitions = StateTransitions[subject.state];
-    return allowedTransitions.includes(newState);
+    const allowedTransitions = StateTransitions[registration.state];
+    return allowedTransitions && allowedTransitions.includes(newState);
   }
 
   /**
-   * Transition subject to new state
+   * Transition registration to new state
    */
-  transition(subjectId, newState) {
-    if (!this.canTransition(subjectId, newState)) {
-      console.warn(`Invalid transition from ${this.subjects.get(subjectId)?.state} to ${newState}`);
+  transition(registrationId, newState) {
+    const registration = this.registrations.get(registrationId);
+    if (!registration) return false;
+
+    // For submitted registrations, allow any state change
+    if (registration.state === SubjectState.PENDING || 
+        registration.state === SubjectState.DRAFT ||
+        registration.state === SubjectState.SCHEDULE_SELECTED) {
+      const oldState = registration.state;
+      registration.state = newState;
+      
+      if (newState === SubjectState.SUBMITTED) {
+        registration.timestamp = new Date().toISOString();
+      }
+
+      this.emit('stateChange', { registrationId, oldState, newState, subject: registration });
+      return true;
+    }
+
+    if (!this.canTransition(registrationId, newState)) {
+      console.warn(`Invalid transition from ${registration.state} to ${newState}`);
       return false;
     }
 
-    const subject = this.subjects.get(subjectId);
-    const oldState = subject.state;
-    subject.state = newState;
+    const oldState = registration.state;
+    registration.state = newState;
     
-    // Update timestamp on submit
     if (newState === SubjectState.SUBMITTED) {
-      subject.timestamp = new Date().toISOString();
+      registration.timestamp = new Date().toISOString();
     }
 
-    this.emit('stateChange', { subjectId, oldState, newState, subject });
+    this.emit('stateChange', { registrationId, oldState, newState, subject: registration });
     return true;
   }
 
   /**
-   * Set active subject (draft mode)
+   * Set active subject - creates a new registration
    */
   setActiveSubject(subjectId) {
     // Cancel previous draft if exists
-    if (this.activeSubjectId && this.activeSubjectId !== subjectId) {
-      const prevSubject = this.subjects.get(this.activeSubjectId);
-      if (prevSubject && prevSubject.state === SubjectState.DRAFT) {
-        this.transition(this.activeSubjectId, SubjectState.IDLE);
-        this.resetSubjectConfig(this.activeSubjectId);
+    if (this.activeRegistrationId) {
+      const prevReg = this.registrations.get(this.activeRegistrationId);
+      if (prevReg && prevReg.state === SubjectState.DRAFT) {
+        // Remove draft registration if not submitted
+        this.registrations.delete(this.activeRegistrationId);
       }
     }
 
-    this.activeSubjectId = subjectId;
-    
     if (subjectId) {
-      const subject = this.subjects.get(subjectId);
-      if (subject && subject.state === SubjectState.IDLE) {
-        this.transition(subjectId, SubjectState.DRAFT);
-      }
+      // Create a new registration for this subject
+      const registrationId = this.createRegistration(subjectId);
+      this.activeRegistrationId = registrationId;
+      this.emit('activeSubjectChange', { subjectId, registrationId });
+    } else {
+      this.activeRegistrationId = null;
+      this.emit('activeSubjectChange', { subjectId: null, registrationId: null });
     }
-
-    this.emit('activeSubjectChange', { subjectId });
   }
 
   /**
-   * Get active subject
+   * Get active subject/registration
+   * Returns registration data with subject info for backwards compatibility
    */
   getActiveSubject() {
-    return this.activeSubjectId ? this.subjects.get(this.activeSubjectId) : null;
+    if (!this.activeRegistrationId) return null;
+    const registration = this.registrations.get(this.activeRegistrationId);
+    if (!registration) return null;
+    
+    // Return registration with 'id' pointing to subjectId for backwards compatibility
+    return {
+      ...registration,
+      id: registration.subjectId  // For API calls that need subject ID
+    };
   }
 
   /**
-   * Update subject configuration
+   * Update registration configuration
    */
   updateConfig(subjectId, configKey, value) {
-    const subject = this.subjects.get(subjectId);
-    if (subject) {
-      subject.config[configKey] = value;
-      this.emit('configChange', { subjectId, configKey, value, config: subject.config });
+    // Use active registration instead of subject
+    const registration = this.registrations.get(this.activeRegistrationId);
+    if (registration) {
+      registration.config[configKey] = value;
+      this.emit('configChange', { 
+        subjectId: registration.subjectId, 
+        registrationId: this.activeRegistrationId,
+        configKey, 
+        value, 
+        config: registration.config 
+      });
     }
   }
 
@@ -170,52 +251,60 @@ class SubjectStateMachine {
    * Check if all config fields are filled
    */
   isConfigComplete(subjectId) {
-    const subject = this.subjects.get(subjectId);
-    if (!subject) return false;
+    const registration = this.registrations.get(this.activeRegistrationId);
+    if (!registration) return false;
     
-    const { groupType, groupLevel, educationType, grade } = subject.config;
+    const { groupType, groupLevel, educationType, grade } = registration.config;
     return groupType && groupLevel && educationType && grade;
   }
 
   /**
-   * Set schedule for subject
+   * Set schedule for active registration
    */
   setSchedule(subjectId, schedule) {
-    const subject = this.subjects.get(subjectId);
-    if (subject) {
-      subject.schedule = schedule;
-      if (subject.state === SubjectState.DRAFT) {
-        this.transition(subjectId, SubjectState.SCHEDULE_SELECTED);
+    const registration = this.registrations.get(this.activeRegistrationId);
+    if (registration) {
+      registration.schedule = schedule;
+      if (registration.state === SubjectState.DRAFT) {
+        this.transition(this.activeRegistrationId, SubjectState.SCHEDULE_SELECTED);
       }
-      this.emit('scheduleChange', { subjectId, schedule });
+      this.emit('scheduleChange', { 
+        subjectId: registration.subjectId, 
+        registrationId: this.activeRegistrationId,
+        schedule 
+      });
     }
   }
 
   /**
-   * Set form data for subject
+   * Set form data for active registration
    */
   setFormData(subjectId, formData) {
-    const subject = this.subjects.get(subjectId);
-    if (subject) {
-      subject.formData = formData;
-      this.emit('formDataChange', { subjectId, formData });
+    const registration = this.registrations.get(this.activeRegistrationId);
+    if (registration) {
+      registration.formData = formData;
+      this.emit('formDataChange', { 
+        subjectId: registration.subjectId,
+        registrationId: this.activeRegistrationId, 
+        formData 
+      });
     }
   }
 
   /**
-   * Reset subject configuration
+   * Reset registration configuration
    */
   resetSubjectConfig(subjectId) {
-    const subject = this.subjects.get(subjectId);
-    if (subject) {
-      subject.config = {
+    const registration = this.registrations.get(this.activeRegistrationId);
+    if (registration) {
+      registration.config = {
         groupType: '',
         groupLevel: '',
         educationType: '',
         grade: ''
       };
-      subject.schedule = null;
-      subject.formData = null;
+      registration.schedule = null;
+      registration.formData = null;
     }
   }
 
@@ -223,18 +312,29 @@ class SubjectStateMachine {
    * Submit registration
    */
   submitRegistration(subjectId) {
-    const subject = this.subjects.get(subjectId);
-    if (!subject || subject.state !== SubjectState.SCHEDULE_SELECTED) {
+    const registration = this.registrations.get(this.activeRegistrationId);
+    if (!registration || registration.state !== SubjectState.SCHEDULE_SELECTED) {
       return false;
     }
 
-    if (this.transition(subjectId, SubjectState.SUBMITTED)) {
-      this.transition(subjectId, SubjectState.PENDING);
-      this.activeSubjectId = null;
-      this.emit('registrationSubmitted', { subjectId, subject });
+    if (this.transition(this.activeRegistrationId, SubjectState.SUBMITTED)) {
+      this.transition(this.activeRegistrationId, SubjectState.PENDING);
+      this.activeRegistrationId = null;
+      this.emit('registrationSubmitted', { 
+        subjectId: registration.subjectId, 
+        registrationId: registration.id,
+        subject: registration 
+      });
       return true;
     }
     return false;
+  }
+
+  /**
+   * Get all submitted registrations (for display)
+   */
+  getAllRegistrations() {
+    return Array.from(this.registrations.values());
   }
 
   /**
@@ -266,3 +366,4 @@ class SubjectStateMachine {
 
 // Create global instance
 window.stateMachine = new SubjectStateMachine();
+

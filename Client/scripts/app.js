@@ -280,6 +280,7 @@ class SmSmAcademy {
 
   /**
    * Create a registered subject card
+   * Supports multiple registrations per subject with registration numbers
    */
   createRegisteredCard(subject) {
     const card = document.createElement('div');
@@ -291,13 +292,17 @@ class SmSmAcademy {
     const stateIcon = subject.state === SubjectState.PENDING ? '⏳' :
                       subject.state === SubjectState.ACCEPTED ? '✓' : '✗';
 
+    // Show registration number if there are multiple
+    const regNumber = subject.registrationNumber ? ` #${subject.registrationNumber}` : '';
+    const displayName = `${subject.name}${regNumber}`;
+
     card.innerHTML = `
-      <div class="registered-subject-icon ${stateClass}">${subject.icon}</div>
+      <div class="registered-subject-icon ${stateClass}">${subject.icon || subject.name?.charAt(0) || '?'}</div>
       <div class="registered-subject-info">
-        <div class="registered-subject-name">${subject.name}</div>
+        <div class="registered-subject-name">${displayName}</div>
         <div class="registered-subject-details">
-          <span>${subject.config.groupType} • ${subject.config.groupLevel}</span>
-          <span>${subject.schedule?.day} ${subject.schedule?.time}</span>
+          <span>${subject.config?.groupType || 'N/A'} • ${subject.config?.groupLevel || 'N/A'}</span>
+          <span>${subject.schedule?.day || ''} ${subject.schedule?.time || ''}</span>
         </div>
       </div>
       <div class="registered-subject-status">

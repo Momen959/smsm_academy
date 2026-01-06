@@ -178,6 +178,11 @@ class FormComponent {
     apiFormData.append('scheduleDay', activeSubject.schedule?.day || '');
     apiFormData.append('scheduleTime', activeSubject.schedule?.time || '');
     
+    // Include the timeslot ID if available
+    if (activeSubject.schedule?.timeslotId) {
+      apiFormData.append('timeslotId', activeSubject.schedule.timeslotId);
+    }
+    
     if (this.fileInput.files[0]) {
       apiFormData.append('paymentProof', this.fileInput.files[0]);
     }

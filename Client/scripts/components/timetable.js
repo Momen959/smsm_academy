@@ -23,6 +23,16 @@ class TimetableComponent {
         this.hide();
       }
     });
+    
+    // Listen for config changes to reload timetable if visible
+    window.stateMachine.on('configChange', async (data) => {
+      // Only reload if timetable is currently expanded/visible
+      if (this.container && this.container.classList.contains('expanded')) {
+        console.log('🔄 Config changed, reloading timetable...');
+        await this.loadTimeSlots();
+        this.render();
+      }
+    });
   }
 
   /**
@@ -30,12 +40,15 @@ class TimetableComponent {
    */
   async loadTimeSlots() {
     try {
-      // Get active subject for filtering
+      // Get active subject and its config for filtering
       const activeSubject = window.stateMachine.getActiveSubject();
       const subjectId = activeSubject?.id || null;
+      const groupType = activeSubject?.config?.groupType || null;
       
-      // Fetch from API
-      const response = await window.apiService.getTimeslotGrid(subjectId);
+      console.log('📅 Loading timeslots with filters:', { subjectId, groupType });
+      
+      // Fetch from API with filters
+      const response = await window.apiService.getTimeslotGrid(subjectId, groupType);
       
       if (response && response.timeSlots && response.timeSlots.length > 0) {
         this.timeSlots = response.timeSlots;
@@ -184,10 +197,11 @@ class TimetableComponent {
   selectSlot(slot) {
     this.selectedSlot = slot;
     
-    // Update state machine
+    // Update state machine with timeslot ID included
     const activeSubject = window.stateMachine.getActiveSubject();
     if (activeSubject) {
       window.stateMachine.setSchedule(activeSubject.id, {
+        timeslotId: slot._id,  // Include the timeslot ID!
         day: slot.day,
         time: slot.time,
         startTime: slot.startTime,
