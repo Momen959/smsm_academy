@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const applicationController = require('../../controllers/user/application');
 const subjectController = require('../../controllers/user/subject');
-const optionsController = require('../../controllers/user/options');
+const optionsController = require('../../config/options');
 const timeslotController = require('../../controllers/user/timeslot');
 const upload = require('../../middlewares/upload');
 
