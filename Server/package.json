@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed": "node src/seeds/seedAll.js",
+    "seed:config": "node src/seeds/seedConfigOptions.js",
+    "seed:time": "node src/seeds/seedTimeConfig.js"
   },
   "keywords": [],
   "author": "",

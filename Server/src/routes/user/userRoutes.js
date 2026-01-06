@@ -1,5 +1,3 @@
-// src/routes/user/userRoutes.js
-// src/routes/user/userRoutes.js
 const express = require('express');
 const router = express.Router();
 const applicationController = require('../../controllers/user/application');
@@ -29,5 +27,7 @@ router.get('/options', optionsController.getOptions);
 router.get('/timeslots', timeslotController.getTimeslots);
 
 router.get('/timeslots/grid', timeslotController.getTimeslotGrid);
+
+router.get('/timeslots/config', timeslotController.getTimeConfig);
 
 module.exports = router;

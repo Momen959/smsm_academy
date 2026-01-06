@@ -60,7 +60,8 @@ class SubjectStateMachine {
       config: {
         groupType: '',
         groupLevel: '',
-        educationType: ''
+        educationType: '',
+        grade: ''
       },
       schedule: null,
       formData: null,
@@ -172,8 +173,8 @@ class SubjectStateMachine {
     const subject = this.subjects.get(subjectId);
     if (!subject) return false;
     
-    const { groupType, groupLevel, educationType } = subject.config;
-    return groupType && groupLevel && educationType;
+    const { groupType, groupLevel, educationType, grade } = subject.config;
+    return groupType && groupLevel && educationType && grade;
   }
 
   /**
@@ -210,7 +211,8 @@ class SubjectStateMachine {
       subject.config = {
         groupType: '',
         groupLevel: '',
-        educationType: ''
+        educationType: '',
+        grade: ''
       };
       subject.schedule = null;
       subject.formData = null;

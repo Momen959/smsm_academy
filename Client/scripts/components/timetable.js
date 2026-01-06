@@ -109,22 +109,35 @@ class TimetableComponent {
       // Day slots
       timeRow.slots.forEach((slot, colIndex) => {
         const slotCell = document.createElement('div');
-        const isAvailable = slot.available && slot.enrolled < slot.capacity;
-        const isFull = !isAvailable;
+        const isEmpty = slot.isEmpty || slot.hasSlot === false;
+        const isAvailable = slot.available && slot.hasSlot && slot.enrolled < slot.capacity;
+        const isFull = slot.hasSlot && !slot.available;
         const isSelected = this.selectedSlot?.day === slot.day && 
                           this.selectedSlot?.startTime === slot.startTime;
 
-        slotCell.className = `timetable-cell timetable-slot ${isAvailable ? 'available' : 'full'} ${isSelected ? 'selected' : ''}`;
+        // Determine slot class
+        let slotClass = 'empty';
+        if (isAvailable) slotClass = 'available';
+        else if (isFull) slotClass = 'full';
+
+        slotCell.className = `timetable-cell timetable-slot ${slotClass} ${isSelected ? 'selected' : ''}`;
         slotCell.dataset.day = slot.day;
         slotCell.dataset.time = slot.startTime;
         
-        if (isAvailable) {
+        if (isEmpty) {
+          // No class scheduled for this slot
+          slotCell.innerHTML = `
+            <span class="slot-empty">—</span>
+          `;
+        } else if (isAvailable) {
+          // Available slot - can click to register
           slotCell.innerHTML = `
             <span class="slot-teacher">${slot.teacher}</span>
             <span class="slot-capacity">${slot.capacity - slot.enrolled} spots left</span>
           `;
           slotCell.addEventListener('click', () => this.selectSlot(slot));
         } else {
+          // Full slot
           slotCell.innerHTML = `
             <span class="slot-teacher">Full</span>
           `;

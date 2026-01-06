@@ -17,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use(express.static(path.join(__dirname, '../../Client'))); // Serve Client files from root
 
 // Routes
 const adminRoutes = require('./routes/admin/adminRoutes');

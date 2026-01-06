@@ -33,6 +33,20 @@ const groupSchema = new mongoose.Schema({
     capacity: { 
         type: Number,
         required: true 
+    },
+    level: {
+        type: String,
+        enum: ['beginner', 'intermediate', 'advanced'],
+        default: 'beginner'
+    },
+    educationType: {
+        type: String,
+        enum: ['local', 'azhar', 'national', 'international'],
+        default: 'national'
+    },
+    grade: {
+        type: String,
+        default: 'G1'
     }
 }, { timestamps: true });
 

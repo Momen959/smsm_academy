@@ -24,25 +24,24 @@
   overflow: hidden;
 }
 
-/* Language Toggle - Always on left */
+/* Language Toggle - Compact, top left */
 .lang-toggle {
   position: absolute;
-  top: var(--space-4);
-  left: var(--space-6);
+  top: var(--space-3);
+  left: var(--space-4);
   display: flex;
-  gap: var(--space-1);
-  background: rgba(255, 255, 255, 0.15);
-  padding: 4px;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px;
   border-radius: var(--radius-full);
-  backdrop-filter: blur(10px);
   z-index: 10;
 }
 
 .lang-btn {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: rgba(255, 255, 255, 0.7);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: var(--font-medium);
+  color: rgba(255, 255, 255, 0.75);
   background: transparent;
   border: none;
   border-radius: var(--radius-full);
@@ -55,8 +54,9 @@
 }
 
 .lang-btn.active {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
   color: var(--color-primary);
+  font-weight: var(--font-semibold);
 }
 
 .hero-content {
@@ -64,15 +64,42 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: var(--space-8);
+  justify-content: space-between;
+  gap: var(--space-6);
   max-width: var(--container-max);
   margin: 0 auto;
 }
 
-/* Logo on left */
+/* Logo + Title Block side by side */
+.hero-branding {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+/* Left side container (branding + social) */
+.hero-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Column for Logo + Social Icons (stacked, centered) */
+.hero-logo-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Logo */
 .hero-logo {
-  width: 120px;
-  height: 120px;
+  width: 90px;
+  height: 90px;
   border-radius: var(--radius-2xl);
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -86,24 +113,16 @@
   object-fit: cover;
 }
 
-/* Text + Video grouped together */
-.hero-main {
+/* Title and Subtitle block */
+.hero-title-block {
   flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-}
-
-.hero-text {
-  flex: 1;
-  color: var(--color-white);
 }
 
 .hero-title {
-  font-size: var(--text-3xl);
+  font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   color: var(--color-white);
-  margin-bottom: var(--space-2);
+  margin: 0 0 var(--space-1) 0;
   line-height: 1.2;
 }
 
@@ -112,36 +131,36 @@
 }
 
 .hero-subtitle {
-  font-size: var(--text-base);
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: var(--space-4);
-  max-width: 400px;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  max-width: 420px;
   line-height: 1.5;
 }
 
+/* Social icons - inline with text */
 .hero-social {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .hero-social .social-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  color: var(--color-white);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--radius-lg);
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .hero-social .social-icon:hover {
-  transform: translateY(-3px);
   background: var(--color-white);
   color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 /* Video */
@@ -200,21 +219,18 @@
 }
 
 /* RTL Support for Arabic */
-[dir="rtl"] .hero-content {
-  flex-direction: row-reverse;
+html[dir="rtl"] .lang-toggle {
+  left: auto !important;
+  right: var(--space-4) !important;
 }
 
-[dir="rtl"] .hero-main {
-  flex-direction: row-reverse;
+/* Hero Content and Branding - dir="rtl" naturally handles the flow */
+
+html[dir="rtl"] .hero-title-block {
+  text-align: right !important;
 }
 
-[dir="rtl"] .hero-text {
-  text-align: right;
-}
-
-[dir="rtl"] .hero-social {
-  justify-content: flex-end;
-}
+/* Social icons don't need justify-content fix anymore since they are centered in column */
 
 /* ─────────────────────────────────────────────────────
    MAIN CONTENT AREA
@@ -727,6 +743,17 @@ html[dir="rtl"] .subject-item {
   background: var(--color-gray-100);
   color: var(--color-gray-400);
   cursor: not-allowed;
+}
+
+.timetable-slot.empty {
+  background: var(--color-gray-50);
+  color: var(--color-gray-300);
+  cursor: default;
+}
+
+.timetable-slot.empty .slot-empty {
+  font-size: var(--text-lg);
+  color: var(--color-gray-300);
 }
 
 .timetable-slot.selected {
