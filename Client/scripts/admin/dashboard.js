@@ -669,10 +669,7 @@ class AdminDashboard {
   }
   
   showAddSubjectModal() {
-    const name = prompt('Enter subject name:');
-    if (name) {
-      this.createSubject(name);
-    }
+    this.openModal('subjectModal');
   }
   
   // ═══════════════════════════════════════════════════════
@@ -723,6 +720,20 @@ class AdminDashboard {
   }
   
   setupFormSubmissions() {
+    // Subject Form
+    const subjectForm = document.getElementById('subjectForm');
+    if (subjectForm) {
+      subjectForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('subjectName').value.trim();
+        if (name) {
+          await this.createSubject(name);
+          subjectForm.reset();
+          this.closeModal('subjectModal');
+        }
+      });
+    }
+    
     // Teacher Form
     const teacherForm = document.getElementById('teacherForm');
     if (teacherForm) {
@@ -971,13 +982,51 @@ class AdminLogin {
     }, 3000);
   }
   
-  showError(message) {
-    const errorEl = document.getElementById('loginError');
-    if (errorEl) {
-      errorEl.textContent = message;
-      errorEl.style.display = 'block';
-    } else {
-      alert(message);
+  // ═══════════════════════════════════════════════════════
+  // CREATE API METHODS
+  // ═══════════════════════════════════════════════════════
+  
+  async createSubject(name) {
+    try {
+      console.log('Creating subject with name:', name);
+      // Send as { name: 'value' }
+      const result = await this.apiCall('/subjects', 'POST', { name: name });
+      console.log('Subject created:', result);
+      this.showNotification('Subject created successfully!', 'success');
+      this.loadSubjects();
+    } catch (error) {
+      console.error('Error creating subject:', error);
+      this.showNotification(`Error: ${error.message}`, 'error');
+    }
+  }
+  
+  async createTeacher(data) {
+    try {
+      await this.apiCall('/teachers', 'POST', data);
+      this.showNotification('Teacher created successfully!', 'success');
+      this.loadTeachers();
+    } catch (error) {
+      this.showNotification(`Error: ${error.message}`, 'error');
+    }
+  }
+  
+  async createGroup(data) {
+    try {
+      await this.apiCall('/groups', 'POST', data);
+      this.showNotification('Group created successfully!', 'success');
+      this.loadGroups();
+    } catch (error) {
+      this.showNotification(`Error: ${error.message}`, 'error');
+    }
+  }
+  
+  async createTimeslot(data) {
+    try {
+      await this.apiCall('/timeslots', 'POST', data);
+      this.showNotification('Timeslot created successfully!', 'success');
+      this.loadTimeslots();
+    } catch (error) {
+      this.showNotification(`Error: ${error.message}`, 'error');
     }
   }
 }
