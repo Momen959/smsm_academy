@@ -157,11 +157,12 @@ class FormComponent {
     }
 
     // Collect form data for local state
+    // Grade is taken from config selection, not form input
     const localFormData = {
       fullName: document.getElementById('fullName').value,
       email: document.getElementById('email').value,
       phone: document.getElementById('phone').value,
-      grade: document.getElementById('studentGrade').value,
+      grade: activeSubject.config?.grade || '',  // Get from config bar selection
       paymentFile: this.fileInput.files[0]
     };
 
@@ -170,7 +171,7 @@ class FormComponent {
     apiFormData.append('fullName', localFormData.fullName);
     apiFormData.append('email', localFormData.email);
     apiFormData.append('phone', localFormData.phone);
-    apiFormData.append('grade', localFormData.grade);
+    apiFormData.append('grade', localFormData.grade);  // From config selection
     apiFormData.append('subjectId', activeSubject.id);
     apiFormData.append('groupType', activeSubject.config?.groupType || '');
     apiFormData.append('groupLevel', activeSubject.config?.groupLevel || '');
