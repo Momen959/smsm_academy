@@ -1,10 +1,6 @@
-/* =====================================================
-   SmSm Academy - Student Page Styles
-   ===================================================== */
 
-/* ─────────────────────────────────────────────────────
-   PAGE LAYOUT
-   ───────────────────────────────────────────────────── */
+
+
 
 .app-container {
   display: flex;
@@ -13,9 +9,7 @@
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
-/* ─────────────────────────────────────────────────────
-   HERO SECTION
-   ───────────────────────────────────────────────────── */
+
 
 .hero {
   position: relative;
@@ -24,7 +18,7 @@
   overflow: hidden;
 }
 
-/* Language Toggle - Compact, top left */
+
 .lang-toggle {
   position: absolute;
   top: var(--space-3);
@@ -70,7 +64,7 @@
   margin: 0 auto;
 }
 
-/* Logo + Title Block side by side */
+
 .hero-branding {
   display: flex !important;
   flex-direction: row !important;
@@ -79,7 +73,7 @@
   gap: var(--space-5);
 }
 
-/* Left side container (branding + social) */
+
 .hero-left {
   flex: 1;
   display: flex;
@@ -87,7 +81,7 @@
   gap: var(--space-4);
 }
 
-/* Column for Logo + Social Icons (stacked, centered) */
+
 .hero-logo-column {
   display: flex;
   flex-direction: column;
@@ -96,7 +90,7 @@
   flex-shrink: 0;
 }
 
-/* Logo */
+
 .hero-logo {
   width: 90px;
   height: 90px;
@@ -113,7 +107,7 @@
   object-fit: cover;
 }
 
-/* Title and Subtitle block */
+
 .hero-title-block {
   flex: 1;
 }
@@ -138,7 +132,7 @@
   line-height: 1.5;
 }
 
-/* Social icons - inline with text */
+
 .hero-social {
   display: flex;
   gap: var(--space-2);
@@ -163,7 +157,7 @@
   transform: translateY(-2px);
 }
 
-/* Video */
+
 .hero-video-wrapper {
   width: 320px;
   aspect-ratio: 16 / 9;
@@ -218,23 +212,21 @@
   font-weight: var(--font-medium);
 }
 
-/* RTL Support for Arabic */
+
 html[dir="rtl"] .lang-toggle {
   left: auto !important;
   right: var(--space-4) !important;
 }
 
-/* Hero Content and Branding - dir="rtl" naturally handles the flow */
+
 
 html[dir="rtl"] .hero-title-block {
   text-align: right !important;
 }
 
-/* Social icons don't need justify-content fix anymore since they are centered in column */
 
-/* ─────────────────────────────────────────────────────
-   MAIN CONTENT AREA
-   ───────────────────────────────────────────────────── */
+
+
 
 .main-content {
   flex: 1;
@@ -247,20 +239,17 @@ html[dir="rtl"] .hero-title-block {
   gap: var(--space-6);
 }
 
-/* ─────────────────────────────────────────────────────
-   SIDEBAR (Subjects List)
-   English: LEFT side | Arabic: RIGHT side
-   ───────────────────────────────────────────────────── */
+
 
 .subjects-sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
-  order: -1; /* English: sidebar on LEFT */
+  order: -1; 
 }
 
-/* Arabic: sidebar goes to RIGHT */
+
 html[dir="rtl"] .subjects-sidebar {
-  order: 1 !important; /* Arabic: sidebar on RIGHT */
+  order: 1 !important; 
 }
 
 html[dir="rtl"] .sidebar-header {
@@ -387,9 +376,7 @@ html[dir="rtl"] .subject-item {
   color: var(--color-pink);
 }
 
-/* ─────────────────────────────────────────────────────
-   INTERACTION CANVAS
-   ───────────────────────────────────────────────────── */
+
 
 .interaction-canvas {
   flex: 1;
@@ -399,7 +386,7 @@ html[dir="rtl"] .subject-item {
   gap: var(--space-4);
 }
 
-/* Empty State - Minimal */
+
 .canvas-empty {
   flex: 1;
   display: flex;
@@ -414,7 +401,7 @@ html[dir="rtl"] .subject-item {
   border: 2px dashed var(--color-gray-200);
 }
 
-/* Minimal Empty State */
+
 .canvas-empty.canvas-empty-minimal {
   flex-direction: row;
   padding: var(--space-6) var(--space-8);
@@ -459,9 +446,7 @@ html[dir="rtl"] .subject-item {
   margin: 0;
 }
 
-/* ─────────────────────────────────────────────────────
-   ACTIVE SUBJECT + CONFIG BAR
-   ───────────────────────────────────────────────────── */
+
 
 .active-subject-card {
   background: var(--color-white);
@@ -529,7 +514,7 @@ html[dir="rtl"] .subject-item {
   color: var(--color-error);
 }
 
-/* Config Bar */
+
 .config-bar {
   padding: var(--space-5) var(--space-6);
   display: flex;
@@ -578,7 +563,7 @@ html[dir="rtl"] .subject-item {
   cursor: not-allowed;
 }
 
-/* Schedule Button */
+
 .schedule-btn {
   display: flex;
   align-items: center;
@@ -614,9 +599,7 @@ html[dir="rtl"] .subject-item {
   height: 20px;
 }
 
-/* ─────────────────────────────────────────────────────
-   TIMETABLE
-   ───────────────────────────────────────────────────── */
+
 
 .timetable-container {
   overflow: hidden;
@@ -685,7 +668,7 @@ html[dir="rtl"] .subject-item {
   background: var(--color-primary);
 }
 
-/* Timetable Grid */
+
 .timetable-grid {
   display: grid;
   grid-template-columns: 80px repeat(6, 1fr);
@@ -772,9 +755,7 @@ html[dir="rtl"] .subject-item {
   font-weight: var(--font-medium);
 }
 
-/* ─────────────────────────────────────────────────────
-   REGISTRATION FORM
-   ───────────────────────────────────────────────────── */
+
 
 .registration-form-container {
   overflow: hidden;
@@ -823,7 +804,7 @@ html[dir="rtl"] .subject-item {
   grid-column: 1 / -1;
 }
 
-/* Selected Schedule Summary */
+
 .selected-schedule-summary {
   display: flex;
   align-items: center;
@@ -877,7 +858,7 @@ html[dir="rtl"] .subject-item {
   color: var(--color-white);
 }
 
-/* Register Button Row */
+
 .register-button-row {
   display: flex;
   justify-content: space-between;
@@ -893,9 +874,7 @@ html[dir="rtl"] .subject-item {
   max-width: 300px;
 }
 
-/* ─────────────────────────────────────────────────────
-   REGISTERED SUBJECTS LIST
-   ───────────────────────────────────────────────────── */
+
 
 .registered-subjects {
   display: flex;
@@ -964,9 +943,7 @@ html[dir="rtl"] .subject-item {
   margin-left: auto;
 }
 
-/* ─────────────────────────────────────────────────────
-   RESPONSIVE
-   ───────────────────────────────────────────────────── */
+
 
 @media (max-width: 1200px) {
   .hero-content {
@@ -1043,9 +1020,7 @@ html[dir="rtl"] .subject-item {
   }
 }
 
-/* ─────────────────────────────────────────────────────
-   RTL SUPPORT FOR FORMS AND CONTENT
-   ───────────────────────────────────────────────────── */
+
 
 [dir="rtl"] .form-label {
   text-align: right;

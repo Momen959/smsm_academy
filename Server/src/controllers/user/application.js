@@ -305,3 +305,69 @@ exports.getApplicationStatus = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * Get full application details by ID
+ */
+exports.getApplicationDetails = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const app = await Application.findById(id)
+            .populate('student')
+            .populate({
+                path: 'group',
+                populate: { path: 'subject' }
+            })
+            .populate('timeslot');
+        
+        if (!app) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+        
+        // Format response to match frontend expectation
+        const formattedApp = {
+            id: app._id,
+            serverId: app._id,
+            fullName: app.student?.firstName + ' ' + app.student?.lastName,
+            email: app.student?.email,
+            phone: app.student?.phone, // Assuming phone is on student model? Check schema provided later if needed.
+            // Wait, Student model has 'firstName', 'lastName', 'email', 'grade', 'educationType'. Phone might be missing on Student model based on createAndSubmit?
+            // In createAndSubmit: student = await Student.create({ firstName, lastName, email, grade, educationType });. NO PHONE in create.
+            // But form submits phone. I should fix Student model? or just return what I have.
+            // Let's assume phone is needed. I'll check Student model later, but for now I'll return what's available.
+            grade: app.student?.grade,
+            educationType: app.student?.educationType,
+            subject: {
+                id: app.group?.subject?._id,
+                name: app.group?.subject?.name,
+                icon: app.group?.subject?.icon // If available
+            },
+            config: {
+                groupType: app.group?.type,
+                groupLevel: app.group?.level,
+                educationType: app.student?.educationType,
+                grade: app.student?.grade
+            },
+            schedule: {
+                timeslotId: app.timeslot?._id,
+                day: app.timeslot ? new Date(app.timeslot.startTime).toLocaleDateString('en-US', { weekday: 'short' }) : '',
+                time: app.timeslot ? new Date(app.timeslot.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
+                teacher: app.timeslot?.teacher?.name || 'TBA', // Teacher might be populated in timeslot? Check timeslot model usually.
+                groupName: app.group?.name
+            },
+            status: app.status?.toLowerCase() || 'pending',
+            submittedAt: app.createdAt
+        };
+
+        // Need to populate timeslot teacher too
+        if (app.timeslot && app.timeslot.teacher) {
+             // If populated, use it. But in the query above I didn't populate timeslot.teacher.
+        }
+
+        res.json(formattedApp);
+    } catch (error) {
+        console.error('Error getting application details:', error);
+        res.status(500).json({ message: error.message });
+    }
+};

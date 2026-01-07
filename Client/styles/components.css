@@ -1,10 +1,6 @@
-/* =====================================================
-   SmSm Academy - Reusable Components
-   ===================================================== */
 
-/* ─────────────────────────────────────────────────────
-   BUTTONS
-   ───────────────────────────────────────────────────── */
+
+
 
 .btn {
   display: inline-flex;
@@ -38,7 +34,7 @@
   opacity: 1;
 }
 
-/* Primary Button */
+
 .btn-primary {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   color: var(--color-white);
@@ -54,7 +50,7 @@
   transform: translateY(0);
 }
 
-/* Secondary Button */
+
 .btn-secondary {
   background: var(--color-white);
   color: var(--color-primary);
@@ -66,7 +62,7 @@
   color: var(--color-white);
 }
 
-/* Accent Button */
+
 .btn-accent {
   background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
   color: var(--color-primary-dark);
@@ -78,7 +74,7 @@
   box-shadow: var(--shadow-md), var(--shadow-accent);
 }
 
-/* Ghost Button */
+
 .btn-ghost {
   background: transparent;
   color: var(--color-gray-600);
@@ -89,7 +85,7 @@
   color: var(--color-gray-800);
 }
 
-/* Icon Button */
+
 .btn-icon {
   width: 44px;
   height: 44px;
@@ -102,7 +98,7 @@
   height: 36px;
 }
 
-/* Button Sizes */
+
 .btn-sm {
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-xs);
@@ -113,7 +109,7 @@
   font-size: var(--text-base);
 }
 
-/* Disabled State */
+
 .btn:disabled,
 .btn.disabled {
   opacity: 0.5;
@@ -121,9 +117,7 @@
   pointer-events: none;
 }
 
-/* ─────────────────────────────────────────────────────
-   FORM INPUTS
-   ───────────────────────────────────────────────────── */
+
 
 .form-group {
   display: flex;
@@ -169,7 +163,7 @@
   box-shadow: 0 0 0 3px var(--color-error-bg);
 }
 
-/* Select Dropdown */
+
 .form-select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -179,13 +173,13 @@
   cursor: pointer;
 }
 
-/* Textarea */
+
 .form-textarea {
   min-height: 120px;
   resize: vertical;
 }
 
-/* File Upload */
+
 .form-file {
   position: relative;
 }
@@ -231,7 +225,7 @@
   color: var(--color-primary);
 }
 
-/* Form Helper Text */
+
 .form-helper {
   font-size: var(--text-xs);
   color: var(--color-gray-500);
@@ -242,9 +236,7 @@
   color: var(--color-error);
 }
 
-/* ─────────────────────────────────────────────────────
-   CARDS
-   ───────────────────────────────────────────────────── */
+
 
 .card {
   background: var(--color-white);
@@ -274,7 +266,7 @@
   background: var(--color-gray-50);
 }
 
-/* Glass Card */
+
 .card-glass {
   background: var(--bg-glass);
   backdrop-filter: blur(12px);
@@ -282,9 +274,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* ─────────────────────────────────────────────────────
-   BADGES & STATUS
-   ───────────────────────────────────────────────────── */
+
 
 .badge {
   display: inline-flex;
@@ -323,7 +313,7 @@
   color: var(--color-info);
 }
 
-/* Status Dot */
+
 .status-dot {
   width: 8px;
   height: 8px;
@@ -349,9 +339,7 @@
   background: var(--color-error);
 }
 
-/* ─────────────────────────────────────────────────────
-   TOOLTIPS
-   ───────────────────────────────────────────────────── */
+
 
 .tooltip {
   position: relative;
@@ -397,9 +385,7 @@
   visibility: visible;
 }
 
-/* ─────────────────────────────────────────────────────
-   ICONS
-   ───────────────────────────────────────────────────── */
+
 
 .icon {
   display: inline-flex;
@@ -413,9 +399,7 @@
 .icon-lg { width: 24px; height: 24px; }
 .icon-xl { width: 32px; height: 32px; }
 
-/* ─────────────────────────────────────────────────────
-   DIVIDERS
-   ───────────────────────────────────────────────────── */
+
 
 .divider {
   height: 1px;
@@ -430,9 +414,7 @@
   margin: 0 var(--space-4);
 }
 
-/* ─────────────────────────────────────────────────────
-   SOCIAL ICONS
-   ───────────────────────────────────────────────────── */
+
 
 .social-icons {
   display: flex;
@@ -473,9 +455,7 @@
   color: white;
 }
 
-/* ─────────────────────────────────────────────────────
-   EMPTY STATE
-   ───────────────────────────────────────────────────── */
+
 
 .empty-state {
   display: flex;

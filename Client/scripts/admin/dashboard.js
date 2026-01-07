@@ -1,7 +1,4 @@
-/**
- * SmSm Academy - Admin Dashboard
- * Manages all admin operations: subjects, groups, timeslots, applications
- */
+
 
 const API_BASE = 'http://localhost:5000/api/admin';
 
@@ -10,7 +7,7 @@ class AdminDashboard {
     this.token = localStorage.getItem('adminToken');
     this.currentSection = 'dashboard';
     
-    // Check authentication
+    
     if (!this.token && !window.location.pathname.includes('index.html')) {
       window.location.href = 'index.html';
       return;
@@ -27,9 +24,9 @@ class AdminDashboard {
     console.log('[INIT] Admin Dashboard initialized');
   }
   
-  // ═══════════════════════════════════════════════════════
-  // API HELPERS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async apiCall(endpoint, method = 'GET', data = null) {
     const options = {
@@ -64,9 +61,9 @@ class AdminDashboard {
     }
   }
   
-  // ═══════════════════════════════════════════════════════
-  // NAVIGATION
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   setupNavigation() {
     const navItems = document.querySelectorAll('.admin-nav-item');
@@ -81,12 +78,12 @@ class AdminDashboard {
   }
   
   navigateTo(section) {
-    // Update nav active state
+    
     document.querySelectorAll('.admin-nav-item').forEach(item => {
       item.classList.toggle('active', item.dataset.section === section);
     });
     
-    // Update page title
+    
     const titles = {
       dashboard: 'Dashboard',
       applications: 'Applications',
@@ -99,18 +96,18 @@ class AdminDashboard {
     document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
     this.currentSection = section;
     
-    // Load section data
+    
     this.loadSectionData(section);
   }
   
   loadSectionData(section) {
-    // Hide all views
+    
     document.querySelectorAll('.view-section').forEach(el => {
       el.style.display = 'none';
       el.classList.remove('active');
     });
     
-    // Show current view
+    
     const viewId = `view-${section}`;
     const viewEl = document.getElementById(viewId);
     if (viewEl) {
@@ -118,7 +115,7 @@ class AdminDashboard {
       setTimeout(() => viewEl.classList.add('active'), 10);
     }
     
-    // Load data for section
+    
     switch(section) {
       case 'dashboard':
         this.loadDashboardData();
@@ -141,37 +138,37 @@ class AdminDashboard {
     }
   }
   
-  // ═══════════════════════════════════════════════════════
-  // DASHBOARD
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async loadDashboardData() {
     try {
-      // Load stats - get pending apps for dashboard and all data for counts
+      
       const [pendingApps, subjects, groupsResult] = await Promise.all([
         this.apiCall('/applications').catch(() => []),
         this.apiCall('/subjects').catch(() => []),
         this.apiCall('/groups').catch(() => ({ groups: [] }))
       ]);
       
-      // Update pending count (applications endpoint now returns only pending)
+      
       const pendingCount = Array.isArray(pendingApps) ? pendingApps.length : 0;
       document.getElementById('pendingCount').textContent = pendingCount;
       document.getElementById('pendingBadge').textContent = pendingCount;
       
-      // Update groups count
+      
       const groups = groupsResult.groups || groupsResult || [];
       const groupsCount = Array.isArray(groups) ? groups.length : 0;
       document.getElementById('groupsCount').textContent = groupsCount;
       
-      // Update subjects count
+      
       const subjectsCount = Array.isArray(subjects) ? subjects.length : 0;
       document.getElementById('subjectsCount').textContent = subjectsCount;
       
-      // Render recent pending applications on dashboard (limit to 5)
+      
       this.renderDashboardApplications(Array.isArray(pendingApps) ? pendingApps.slice(0, 5) : []);
       
-      // Load subjects list
+      
       this.renderSubjectsList(Array.isArray(subjects) ? subjects : []);
       
     } catch (error) {
@@ -179,20 +176,20 @@ class AdminDashboard {
     }
   }
   
-  // ═══════════════════════════════════════════════════════
-  // APPLICATIONS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async loadApplications() {
     try {
-      // Fetch ALL applications for the Applications tab
+      
       const applications = await this.apiCall('/applications/all');
       this.renderAllApplicationsTable(Array.isArray(applications) ? applications : []);
     } catch (error) {
       console.error('Error loading applications:', error);
     }
   }
-  // Render recent pending applications on DASHBOARD (with accept/decline buttons)
+  
   renderDashboardApplications(applications) {
     console.log('[INFO] renderDashboardApplications called with', applications.length, 'applications');
     const tbody = document.getElementById('applicationsTableBody');
@@ -250,7 +247,7 @@ class AdminDashboard {
     
     console.log('[OK] Table built, attaching event listeners...');
     
-    // Add event listeners
+    
     tbody.querySelectorAll('.approve-btn').forEach(btn => {
       btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'approved'));
     });
@@ -266,7 +263,7 @@ class AdminDashboard {
     console.log('[OK] Event listeners attached!');
   }
   
-  // Render ALL applications in the APPLICATIONS TAB (full history)
+  
   renderAllApplicationsTable(applications) {
     const tbody = document.getElementById('allApplicationsTableBody');
     if (!tbody) return;
@@ -288,7 +285,7 @@ class AdminDashboard {
       const isAccepted = status === 'accepted' || status === 'approved';
       const isRejected = status === 'rejected';
       
-      // Status badge color
+      
       const statusClass = isAccepted ? 'accepted' : isRejected ? 'rejected' : 'pending';
       const statusLabel = isAccepted ? 'Accepted' : isRejected ? 'Rejected' : 'Pending';
       
@@ -318,7 +315,7 @@ class AdminDashboard {
       `;
     }).join('');
     
-    // Add event listeners for view payment buttons only (no approve/reject in this tab)
+    
     tbody.querySelectorAll('.view-payment-btn').forEach(btn => {
       btn.addEventListener('click', () => this.viewPayment(btn.dataset.image));
     });
@@ -329,7 +326,7 @@ class AdminDashboard {
       console.log(`Updating application ${id} to ${status}`);
       const result = await this.apiCall(`/applications/${id}/status`, 'PUT', { status });
       console.log('Update result:', result);
-      this.loadDashboardData(); // Refresh
+      this.loadDashboardData(); 
       this.showNotification(`Application ${status}`, 'success');
     } catch (error) {
       console.error('Update application error:', error);
@@ -337,16 +334,14 @@ class AdminDashboard {
     }
   }
   
-  /**
-   * View payment proof image
-   */
+  
   viewPayment(imagePath) {
     if (!imagePath) {
       this.showNotification('No payment proof uploaded', 'info');
       return;
     }
     
-    // Create or show payment modal
+    
     let modal = document.getElementById('paymentModal');
     if (!modal) {
       modal = document.createElement('div');
@@ -366,12 +361,12 @@ class AdminDashboard {
       document.body.appendChild(modal);
     }
     
-    // Set image source (adjust path if needed)
+    
     const imgEl = document.getElementById('paymentImage');
     imgEl.src = imagePath.startsWith('http') ? imagePath : `http://localhost:5000/${imagePath}`;
     modal.style.display = 'flex';
     
-    // Close on outside click
+    
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
         modal.style.display = 'none';
@@ -379,9 +374,9 @@ class AdminDashboard {
     });
   }
   
-  // ═══════════════════════════════════════════════════════
-  // SUBJECTS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async loadSubjects() {
     try {
@@ -464,9 +459,9 @@ class AdminDashboard {
     }
   }
   
-  // ═══════════════════════════════════════════════════════
-  // GROUPS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async loadGroups() {
     try {
@@ -516,9 +511,9 @@ class AdminDashboard {
     }
   }
   
-  // ═══════════════════════════════════════════════════════
-  // TIMESLOTS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async loadTimeslots() {
     try {
@@ -586,9 +581,9 @@ class AdminDashboard {
     }
   }
   
-  // ═══════════════════════════════════════════════════════
-  // TEACHERS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async loadTeachers() {
     try {
@@ -639,24 +634,24 @@ class AdminDashboard {
     }
   }
 
-  // ═══════════════════════════════════════════════════════
-  // EVENT LISTENERS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   setupEventListeners() {
-    // Logout button
+    
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => this.logout());
     }
     
-    // Add New button in header
+    
     const addNewBtns = document.querySelectorAll('.admin-header-actions .btn-primary');
     addNewBtns.forEach(btn => {
       btn.addEventListener('click', () => this.handleAddNew());
     });
     
-    // Add buttons in config sections
+    
     const configBtns = [
       'addSubjectBtn', 'addGroupBtn', 'addTeacherBtn', 'addTimeslotBtn'
     ];
@@ -682,7 +677,7 @@ class AdminDashboard {
         this.showAddTimeslotModal();
         break;
       default:
-        // Default based on current section
+        
         switch(this.currentSection) {
           case 'subjects':
             this.showAddSubjectModal();
@@ -706,9 +701,9 @@ class AdminDashboard {
     this.openModal('subjectModal');
   }
   
-  // ═══════════════════════════════════════════════════════
-  // MODAL MANAGEMENT
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   openModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -723,14 +718,14 @@ class AdminDashboard {
     if (modal) {
       modal.style.display = 'none';
       document.body.style.overflow = '';
-      // Reset form
+      
       const form = modal.querySelector('form');
       if (form) form.reset();
     }
   }
   
   setupModalListeners() {
-    // Close buttons
+    
     document.querySelectorAll('.modal-close, .modal-overlay [data-modal]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         if (e.target.dataset.modal || e.target.classList.contains('modal-close')) {
@@ -740,7 +735,7 @@ class AdminDashboard {
       });
     });
     
-    // Close on overlay click
+    
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -749,12 +744,12 @@ class AdminDashboard {
       });
     });
     
-    // Form submissions
+    
     this.setupFormSubmissions();
   }
   
   setupFormSubmissions() {
-    // Subject Form
+    
     const subjectForm = document.getElementById('subjectForm');
     if (subjectForm) {
       subjectForm.addEventListener('submit', async (e) => {
@@ -768,7 +763,7 @@ class AdminDashboard {
       });
     }
     
-    // Teacher Form
+    
     const teacherForm = document.getElementById('teacherForm');
     if (teacherForm) {
       teacherForm.addEventListener('submit', async (e) => {
@@ -783,7 +778,7 @@ class AdminDashboard {
       });
     }
     
-    // Group Form
+    
     const groupForm = document.getElementById('groupForm');
     if (groupForm) {
       groupForm.addEventListener('submit', async (e) => {
@@ -802,7 +797,7 @@ class AdminDashboard {
       });
     }
     
-    // Timeslot Form
+    
     const timeslotForm = document.getElementById('timeslotForm');
     if (timeslotForm) {
       timeslotForm.addEventListener('submit', async (e) => {
@@ -810,7 +805,7 @@ class AdminDashboard {
         const day = document.getElementById('timeslotDay').value;
         const timePeriod = document.getElementById('timeslotPeriod').value;
         
-        // Parse time period (format: "08:00-10:00")
+        
         const [startTime, endTime] = timePeriod.split('-');
         
         const data = {
@@ -831,7 +826,7 @@ class AdminDashboard {
   }
   
   async showAddGroupModal() {
-    // Populate subjects dropdown
+    
     try {
       const subjects = await this.apiCall('/subjects');
       const select = document.getElementById('groupSubject');
@@ -848,7 +843,7 @@ class AdminDashboard {
   }
   
   async showAddTimeslotModal() {
-    // Populate groups and teachers dropdowns
+    
     try {
       const [groupsResult, teachersResult] = await Promise.all([
         this.apiCall('/groups'),
@@ -858,7 +853,7 @@ class AdminDashboard {
       const groups = groupsResult.groups || groupsResult || [];
       const teachers = teachersResult.teachers || teachersResult || [];
       
-      // Populate groups
+      
       const groupSelect = document.getElementById('timeslotGroup');
       if (groupSelect) {
         groupSelect.innerHTML = '<option value="">Select a group...</option>';
@@ -868,7 +863,7 @@ class AdminDashboard {
         });
       }
       
-      // Populate teachers
+      
       const teacherSelect = document.getElementById('timeslotTeacher');
       if (teacherSelect) {
         teacherSelect.innerHTML = '<option value="">Select a teacher...</option>';
@@ -882,9 +877,9 @@ class AdminDashboard {
     this.openModal('timeslotModal');
   }
   
-  // ═══════════════════════════════════════════════════════
-  // CREATE METHODS FOR NEW ENTITIES
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async createTeacher(data) {
     try {
@@ -906,9 +901,9 @@ class AdminDashboard {
     }
   }
   
-  // ═══════════════════════════════════════════════════════
-  // UTILITIES
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   logout() {
     localStorage.removeItem('adminToken');
@@ -916,7 +911,7 @@ class AdminDashboard {
   }
   
   showNotification(message, type = 'info') {
-    // Simple notification
+    
     const notification = document.createElement('div');
     notification.className = `admin-notification ${type}`;
     notification.textContent = message;
@@ -941,9 +936,9 @@ class AdminDashboard {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// ADMIN LOGIN
-// ═══════════════════════════════════════════════════════
+
+
+
 
 class AdminLogin {
   constructor() {
@@ -984,7 +979,7 @@ class AdminLogin {
   }
   
   showNotification(message, type = 'info') {
-    // Remove any existing notification
+    
     const existing = document.querySelector('.admin-notification');
     if (existing) existing.remove();
     
@@ -1007,7 +1002,7 @@ class AdminLogin {
     
     document.body.appendChild(notification);
     
-    // Auto-remove after 3 seconds
+    
     setTimeout(() => {
       notification.style.opacity = '0';
       notification.style.transform = 'translateX(100px)';
@@ -1016,14 +1011,14 @@ class AdminLogin {
     }, 3000);
   }
   
-  // ═══════════════════════════════════════════════════════
-  // CREATE API METHODS
-  // ═══════════════════════════════════════════════════════
+  
+  
+  
   
   async createSubject(name) {
     try {
       console.log('Creating subject with name:', name);
-      // Send as { name: 'value' }
+      
       const result = await this.apiCall('/subjects', 'POST', { name: name });
       console.log('Subject created:', result);
       this.showNotification('Subject created successfully!', 'success');
@@ -1065,7 +1060,7 @@ class AdminLogin {
   }
 }
 
-// Initialize on page load
+
 document.addEventListener('DOMContentLoaded', () => {
   if (window.location.pathname.includes('dashboard')) {
     window.adminDashboard = new AdminDashboard();
