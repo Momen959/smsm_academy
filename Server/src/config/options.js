@@ -1,7 +1,7 @@
 // src/controllers/user/options.js
 // Returns configuration options for dropdowns - fetched from database
 
-const ConfigOption = require('../../models/ConfigOption');
+const ConfigOption = require('./ConfigOption');
 
 /**
  * Get all dropdown options for the registration form

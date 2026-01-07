@@ -1,7 +1,7 @@
 // src/controllers/user/timeslot.js
 const Timeslot = require('../../models/Timeslot');
 const Group = require('../../models/Group');
-const { DayConfig, TimePeriodConfig } = require('../../models/TimeSlotConfig');
+const { DayConfig, TimePeriodConfig } = require('../../config/TimeSlotConfig');
 
 // Default configurations (fallback if database is empty)
 const DEFAULT_DAYS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];

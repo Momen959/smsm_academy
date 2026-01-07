@@ -3,7 +3,7 @@ const Application = require('../../models/Application');
 const Student = require('../../models/Student');
 const Group = require('../../models/Group');
 const Subject = require('../../models/Subject');
-const ConfigOption = require('../../models/ConfigOption');
+const ConfigOption = require('../../config/ConfigOption');
 
 exports.createDraft = async (req, res) => {
     try {
