@@ -191,7 +191,6 @@ class FormComponent {
       apiFormData.append('paymentProof', this.fileInput.files[0]);
     }
 
-<<<<<<< HEAD
     // Generate unique application ID
     const applicationId = 'APP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
@@ -222,8 +221,6 @@ class FormComponent {
     };
 
     let apiSuccess = false;
-=======
->>>>>>> 870d1748395e2ab438d7cd580fd171babc6afd82
     try {
       // Submit to backend API
       const response = await window.apiService.postFormData('/user/applications/submit', apiFormData);
