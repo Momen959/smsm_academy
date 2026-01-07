@@ -218,6 +218,7 @@ class FormComponent {
         id: activeSubject.id,
         name: activeSubject.name
       },
+      groupLevel: activeSubject.config?.groupLevel || '',
       groupType: activeSubject.config?.groupType || '',
       educationType: activeSubject.config?.educationType || '',
       schedule: {

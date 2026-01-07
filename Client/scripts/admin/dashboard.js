@@ -49,6 +49,11 @@ class AdminDashboard {
       const result = await response.json();
       
       if (!response.ok) {
+        if (response.status === 401 && !window.location.pathname.includes('index.html')) {
+          window.location.href = 'index.html';
+          alert('Session expired. Please log in again.');
+          throw new Error(result.message || 'AUTH Error');
+        }
         throw new Error(result.message || 'API Error');
       }
       
