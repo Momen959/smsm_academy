@@ -1,7 +1,4 @@
-/**
- * SmSm Academy - Registration Form Component
- * Handles the student registration form
- */
+
 
 class FormComponent {
   constructor() {
@@ -18,31 +15,29 @@ class FormComponent {
   }
 
   init() {
-    // Listen for show form event
+    
     document.addEventListener('showRegistrationForm', (e) => this.show(e.detail.schedule));
     
-    // Listen for state changes
+    
     window.stateMachine.on('activeSubjectChange', (data) => {
       if (!data.subjectId) {
         this.hide();
       }
     });
 
-    // Change schedule button
+    
     this.changeScheduleBtn.addEventListener('click', () => this.handleChangeSchedule());
 
-    // File input change
+    
     this.fileInput.addEventListener('change', (e) => this.handleFileChange(e));
 
-    // Form submission
+    
     this.form.addEventListener('submit', (e) => this.handleSubmit(e));
   }
 
-  /**
-   * Show the registration form
-   */
+  
   show(schedule) {
-    // Update schedule summary
+    
     const dayNames = {
       'Sat': 'Saturday',
       'Sun': 'Sunday',
@@ -55,7 +50,7 @@ class FormComponent {
     this.summaryDay.textContent = dayNames[schedule.day] || schedule.day;
     this.summaryTime.textContent = `${schedule.time} • ${schedule.teacher}`;
 
-    // Load saved user data from localStorage (if any)
+    
     try {
       const savedData = JSON.parse(localStorage.getItem('smsmUserData') || '{}');
       console.log('[INFO] Loading saved user data:', savedData);
@@ -71,52 +66,46 @@ class FormComponent {
       console.warn('Could not load saved user data:', e);
     }
 
-    // Only reset file upload, NOT the user info fields
+    
     this.fileInput.value = '';
     this.filePreview.style.display = 'none';
     this.filePreview.innerHTML = '';
 
-    // Expand container
+    
     this.container.classList.remove('collapsed');
     this.container.classList.add('expanded');
   }
 
-  /**
-   * Hide the registration form
-   */
+  
   hide() {
     this.container.classList.remove('expanded');
     this.container.classList.add('collapsed');
   }
 
-  /**
-   * Handle change schedule button
-   */
+  
   handleChangeSchedule() {
     this.hide();
     
-    // Show timetable
+    
     setTimeout(() => {
       const event = new CustomEvent('showTimetable');
       document.dispatchEvent(event);
     }, 200);
   }
 
-  /**
-   * Handle file input change
-   */
+  
   handleFileChange(event) {
     const file = event.target.files[0];
     
     if (file) {
-      // Validate file size (5MB max)
+      
       if (file.size > 5 * 1024 * 1024) {
         alert('File size must be less than 5MB');
         this.fileInput.value = '';
         return;
       }
 
-      // Show preview
+      
       const reader = new FileReader();
       reader.onload = (e) => {
         this.filePreview.innerHTML = `
@@ -136,7 +125,7 @@ class FormComponent {
         `;
         this.filePreview.style.display = 'block';
         
-        // Add remove handler
+        
         document.getElementById('removeFile').addEventListener('click', () => {
           this.fileInput.value = '';
           this.filePreview.style.display = 'none';
@@ -147,9 +136,7 @@ class FormComponent {
     }
   }
 
-  /**
-   * Handle form submission
-   */
+  
   async handleSubmit(event) {
     event.preventDefault();
 
@@ -204,97 +191,65 @@ class FormComponent {
       apiFormData.append('paymentProof', this.fileInput.files[0]);
     }
 
-    // Generate unique application ID
-    const applicationId = 'APP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
-    // Create application object for localStorage
-    const applicationData = {
-      id: applicationId,
-      fullName: localFormData.fullName,
-      email: localFormData.email,
-      phone: localFormData.phone,
-      grade: localFormData.grade,
-      subject: {
-        id: activeSubject.id,
-        name: activeSubject.name
-      },
-      groupType: activeSubject.config?.groupType || '',
-      educationType: activeSubject.config?.educationType || '',
-      schedule: {
-        day: activeSubject.schedule?.day || '',
-        time: activeSubject.schedule?.time || '',
-        teacher: activeSubject.schedule?.teacher || '',
-        timeslotId: activeSubject.schedule?.timeslotId || null,
-        groupName: activeSubject.schedule?.groupName || '' // Add group name
-      },
-      status: 'pending',
-      submittedAt: new Date().toISOString(),
-      hasPaymentProof: !!this.fileInput.files[0]
-    };
-
-    let apiSuccess = false;
     try {
-      // Try to submit to backend API
+      // Submit to backend API
       const response = await window.apiService.postFormData('/user/applications/submit', apiFormData);
       console.log('[OK] Registration submitted to API:', response);
-      apiSuccess = true;
       
-      // Update local application with server ID if available
-      if (response.data && response.data._id) {
-        applicationData.serverId = response.data._id;
+      if (response && (response.data?._id || response._id)) {
+        const appId = response.data?._id || response._id; // Handle different response structures
+        
+        // Save ONLY the application ID to localStorage as requested
+        const savedApp = { id: appId };
+        this.saveApplicationToLocalStorage(savedApp);
+        console.log('[SAVE] Saved application ID to localStorage:', savedApp);
+
+        // Save user data to localStorage for future registrations
+        const userDataToSave = {
+          fullName: localFormData.fullName,
+          email: localFormData.email,
+          phone: localFormData.phone
+        };
+        localStorage.setItem('smsmUserData', JSON.stringify(userDataToSave));
+        
+        // Update local state machine
+        window.stateMachine.setFormData(activeSubject.id, localFormData);
+        window.stateMachine.submitRegistration(activeSubject.id);
+        
+        // Hide form
+        this.hide();
+        
+        // Show success feedback
+        this.showSuccessMessage();
+        
+        // Refresh registered subjects list
+        const completeEvent = new CustomEvent('registrationComplete', {
+          detail: { subjectId: activeSubject.id }
+        });
+        document.dispatchEvent(completeEvent);
+      } else {
+        throw new Error('No application ID returned from server');
       }
     } catch (error) {
-      console.warn('[WARN] Could not submit to API, saving locally only:', error.message);
+      console.error('[ERROR] Submission failed:', error);
+      alert('Submission failed: ' + (error.message || 'Unknown error'));
+    } finally {
+      // Restore button state
+      this.submitBtn.disabled = false;
+      this.submitBtn.querySelector('span').textContent = originalText;
     }
-
-    // Save application to localStorage
-    this.saveApplicationToLocalStorage(applicationData);
-    console.log('[SAVE] Saved application to localStorage:', applicationData);
-
-    // Save user data to localStorage for future registrations
-    const userDataToSave = {
-      fullName: localFormData.fullName,
-      email: localFormData.email,
-      phone: localFormData.phone
-    };
-    localStorage.setItem('smsmUserData', JSON.stringify(userDataToSave));
-    console.log('[SAVE] Saved user data to localStorage:', userDataToSave);
-
-    // Update local state machine regardless of API success
-    window.stateMachine.setFormData(activeSubject.id, localFormData);
-    
-    // Submit registration locally
-    if (window.stateMachine.submitRegistration(activeSubject.id)) {
-      // Hide form
-      this.hide();
-      
-      // Show success feedback
-      this.showSuccessMessage();
-      
-      // Refresh registered subjects list
-      const completeEvent = new CustomEvent('registrationComplete', {
-        detail: { subjectId: activeSubject.id }
-      });
-      document.dispatchEvent(completeEvent);
-    }
-
-    // Restore button state
-    this.submitBtn.disabled = false;
-    this.submitBtn.querySelector('span').textContent = originalText;
   }
 
-  /**
-   * Save application to localStorage
-   */
+  
   saveApplicationToLocalStorage(application) {
     try {
-      // Get existing applications
+      
       const existingApps = JSON.parse(localStorage.getItem('smsmApplications') || '[]');
       
-      // Add new application
+      
       existingApps.push(application);
       
-      // Save back to localStorage
+      
       localStorage.setItem('smsmApplications', JSON.stringify(existingApps));
       
       console.log(`[INFO] Total applications in localStorage: ${existingApps.length}`);
@@ -303,9 +258,7 @@ class FormComponent {
     }
   }
 
-  /**
-   * Get all applications from localStorage
-   */
+  
   static getApplicationsFromLocalStorage() {
     try {
       return JSON.parse(localStorage.getItem('smsmApplications') || '[]');
@@ -315,19 +268,15 @@ class FormComponent {
     }
   }
 
-  /**
-   * Get applications for a specific email
-   */
+  
   static getApplicationsByEmail(email) {
     const allApps = FormComponent.getApplicationsFromLocalStorage();
     return allApps.filter(app => app.email.toLowerCase() === email.toLowerCase());
   }
 
-  /**
-   * Show success message
-   */
+  
   showSuccessMessage() {
-    // Create toast notification
+    
     const toast = document.createElement('div');
     toast.className = 'success-toast animate-fade-in-up';
     toast.style.cssText = `
@@ -354,7 +303,7 @@ class FormComponent {
 
     document.body.appendChild(toast);
 
-    // Remove after 5 seconds
+    
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(20px)';
@@ -364,5 +313,5 @@ class FormComponent {
   }
 }
 
-// Export for global access
+
 window.FormComponent = FormComponent;

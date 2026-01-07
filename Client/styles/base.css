@@ -1,13 +1,9 @@
-/* =====================================================
-   SmSm Academy - Base Styles & Reset
-   ===================================================== */
 
-/* Google Fonts Import */
+
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
-/* ─────────────────────────────────────────────────────
-   CSS RESET
-   ───────────────────────────────────────────────────── */
+
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -33,9 +29,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ─────────────────────────────────────────────────────
-   TYPOGRAPHY BASE
-   ───────────────────────────────────────────────────── */
+
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
@@ -74,9 +68,7 @@ small {
   font-size: var(--text-sm);
 }
 
-/* ─────────────────────────────────────────────────────
-   FORM ELEMENTS
-   ───────────────────────────────────────────────────── */
+
 
 input, textarea, select, button {
   font-family: inherit;
@@ -94,7 +86,7 @@ input:focus, textarea:focus, select:focus, button:focus {
   outline: none;
 }
 
-/* Remove autofill background */
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -103,9 +95,7 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* ─────────────────────────────────────────────────────
-   MEDIA ELEMENTS
-   ───────────────────────────────────────────────────── */
+
 
 img, video, svg {
   display: block;
@@ -113,26 +103,20 @@ img, video, svg {
   height: auto;
 }
 
-/* ─────────────────────────────────────────────────────
-   LISTS
-   ───────────────────────────────────────────────────── */
+
 
 ul, ol {
   list-style: none;
 }
 
-/* ─────────────────────────────────────────────────────
-   TABLES
-   ───────────────────────────────────────────────────── */
+
 
 table {
   border-collapse: collapse;
   width: 100%;
 }
 
-/* ─────────────────────────────────────────────────────
-   UTILITIES
-   ───────────────────────────────────────────────────── */
+
 
 .sr-only {
   position: absolute;
@@ -153,7 +137,7 @@ table {
   padding: 0 var(--space-6);
 }
 
-/* Scrollbar Styling */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -174,7 +158,7 @@ table {
   background: var(--color-gray-400);
 }
 
-/* Selection */
+
 ::selection {
   background-color: var(--color-primary);
   color: var(--color-white);

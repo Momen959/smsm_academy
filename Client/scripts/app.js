@@ -1,7 +1,4 @@
-/**
- * SmSm Academy - Main Application
- * Initializes all components and manages the app
- */
+
 
 class SmSmAcademy {
   constructor() {
@@ -17,34 +14,33 @@ class SmSmAcademy {
   }
 
   init() {
-    // Initialize components
+    
     this.sidebar = new SidebarComponent();
     this.configBar = new ConfigBarComponent();
     this.timetable = new TimetableComponent();
     this.form = new FormComponent();
 
-    // Initialize language switching
+    
     this.initLanguageToggle();
 
-    // Load subjects and options from API
+    
     this.loadSubjects();
     this.loadOptions();
     
-    // Load saved applications from localStorage
+    
     this.loadSavedApplications();
 
-    // Listen for registration complete
+    
     document.addEventListener('registrationComplete', (e) => this.handleRegistrationComplete(e));
 
-    // Subscribe to state changes for registered subjects
+    
     window.stateMachine.on('stateChange', (data) => this.updateRegisteredSubjects());
 
     console.log('[INIT] SmSm Academy initialized successfully!');
   }
   
-  /**
-   * Load saved applications from localStorage and sync status from backend
-   */
+  
+
   async loadSavedApplications() {
     try {
       const savedApps = JSON.parse(localStorage.getItem('smsmApplications') || '[]');
@@ -56,83 +52,114 @@ class SmSmAcademy {
       
       console.log(`[INFO] Loading ${savedApps.length} saved applications from localStorage`);
       
-      // Sync status from backend for each application that has a serverId
-      let statusUpdated = false;
+      const hydratedApps = [];
+      const validIds = [];
+      let hasChanges = false;
+
       for (const app of savedApps) {
-        if (app.serverId) {
-          try {
-            const response = await fetch(`http://localhost:5000/api/user/applications/${app.serverId}/status`);
-            if (response.ok) {
-              const data = await response.json();
-              if (data.status && app.status !== data.status) {
-                console.log(`[SYNC] Syncing status for ${app.subject?.name}: ${app.status} -> ${data.status}`);
-                app.status = data.status;
-                statusUpdated = true;
-              }
+        // Handle both new format { id: "..." } and legacy { serverId: "...", ... }
+        const appId = app.id || app.serverId;
+        
+        // Filter out legacy client-side IDs starting with "APP_"
+        if (appId && typeof appId === 'string' && appId.startsWith('APP_')) {
+             console.warn(`[WARN] Removing legacy client-side application ID: ${appId}`);
+             hasChanges = true;
+             continue;
+        }
+
+        if (appId) {
+            try {
+                // Fetch full details from server
+                const response = await fetch(`http://localhost:5000/api/user/applications/${appId}`);
+                if (response.ok) {
+                    const fullAppData = await response.json();
+                    hydratedApps.push(fullAppData);
+                    validIds.push({ id: appId });
+                    
+                    // If we migrated from legacy format, mark as changed
+                    if (!app.id || app.serverId) hasChanges = true;
+                    
+                } else if (response.status === 404 || response.status === 400) {
+                    // Application not found on server or invalid ID -> Remove
+                    console.warn(`[WARN] Application ${appId} not found on server (status ${response.status}), removing.`);
+                    hasChanges = true;
+                } else {
+                    // Server error (500, etc) -> Keep to try again later
+                    console.warn(`[WARN] Server error ${response.status} for ${appId}, keeping in storage.`);
+                    validIds.push({ id: appId });
+                }
+            } catch (err) {
+                 // Network error -> Keep
+                 console.error(`[ERROR] Failed to fetch application ${appId} (Network Error), keeping in storage:`, err);
+                 validIds.push({ id: appId });
             }
-          } catch (error) {
-            console.warn(`[WARN] Could not sync status for application ${app.serverId}:`, error.message);
-          }
+        } else {
+             // Invalid entry without ID
+             hasChanges = true;
         }
       }
       
-      // Save updated apps back to localStorage if any status changed
-      if (statusUpdated) {
-        localStorage.setItem('smsmApplications', JSON.stringify(savedApps));
-        console.log('[SAVE] Updated localStorage with synced statuses');
+      // Update localStorage if we found invalid items or migrated formats
+      if (hasChanges) {
+        localStorage.setItem('smsmApplications', JSON.stringify(validIds));
+        console.log('[SAVE] Cleaned up localStorage: removed invalid/legacy applications');
       }
-      
-      // Wait for subjects to load before restoring
+
+      // Populate state machine with successfully loaded apps
       setTimeout(() => {
-        // Create a unique registration for each saved application
-        savedApps.forEach((app, index) => {
-          // Find the subject in state machine
-          const subject = window.stateMachine.subjects.get(app.subject?.id);
+        hydratedApps.forEach((app, index) => {
+          const registrationId = app.id;
           
-          if (subject) {
-            // Create a unique registration ID based on the app
-            const registrationId = app.id || `restored_${app.subject.id}_${index}`;
-            
-            // Create registration data
-            const registrationData = {
-              ...subject,
-              registrationId: registrationId,
-              registrationNumber: index + 1,
-              config: {
-                groupType: app.groupType,
-                educationType: app.educationType,
-                grade: app.grade
-              },
-              schedule: app.schedule,
-              formData: {
-                fullName: app.fullName,
-                email: app.email,
-                phone: app.phone,
-                grade: app.grade
-              },
-              state: this.mapStatusToState(app.status),
-              subjectId: app.subject.id,
-              submittedAt: app.submittedAt
-            };
-            
-            // Add to registrations map
-            window.stateMachine.registrations.set(registrationId, registrationData);
-            console.log(`[OK] Restored application for ${app.subject.name} with status ${app.status}`);
+          // Construct subject data from API response
+          const subjectData = {
+            id: app.subject.id,
+            name: app.subject.name,
+            icon: app.subject.icon || app.subject.name?.charAt(0) || '?',
+            color: '#3b82f6', // Default color
+            meta: this.currentLang === 'ar' ? 'مجموعات متاحة' : 'Groups available'
+          };
+
+          // Try to match color from sidebar if available
+          if (this.sidebar && this.sidebar.subjects) {
+             const match = this.sidebar.subjects.find(s => s.id === app.subject.id);
+             if (match) {
+                 subjectData.color = match.color;
+                 subjectData.meta = match.meta;
+                 subjectData.icon = match.icon;
+             }
           }
+
+          const registrationData = {
+            ...subjectData,
+            registrationId: registrationId,
+            registrationNumber: index + 1,
+            config: app.config,
+            schedule: app.schedule,
+            formData: {
+              fullName: app.fullName,
+              email: app.email,
+              phone: app.phone,
+              grade: app.grade
+            },
+            state: this.mapStatusToState(app.status),
+            subjectId: app.subject.id,
+            submittedAt: app.submittedAt,
+            serverId: app.id
+          };
+
+          window.stateMachine.registrations.set(registrationId, registrationData);
+          console.log(`[OK] Restored application for ${app.subject.name} with status ${app.status}`);
         });
         
-        // Update registered subjects display
         this.updateRegisteredSubjects();
-      }, 1500); // Wait for subjects to load
+      }, 1000);
       
     } catch (error) {
-      console.error('Error loading saved applications:', error);
+      console.error('[ERROR] Error loading saved applications:', error);
     }
   }
   
-  /**
-   * Map localStorage status to SubjectState
-   */
+  
   mapStatusToState(status) {
     const statusMap = {
       'pending': SubjectState.PENDING,
@@ -143,9 +170,7 @@ class SmSmAcademy {
     return statusMap[status?.toLowerCase()] || SubjectState.PENDING;
   }
 
-  /**
-   * Initialize language toggle functionality
-   */
+  
   initLanguageToggle() {
     const langBtns = document.querySelectorAll('.lang-btn');
     
@@ -154,33 +179,31 @@ class SmSmAcademy {
         const lang = btn.dataset.lang;
         this.switchLanguage(lang);
         
-        // Update active button
+        
         langBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       });
     });
   }
 
-  /**
-   * Switch language between English and Arabic
-   */
+  
   switchLanguage(lang) {
     this.currentLang = lang;
     const htmlElement = document.documentElement;
     const sidebar = document.querySelector('.subjects-sidebar');
     const mainContent = document.querySelector('.main-content');
     
-    // Set RTL for Arabic
+    
     if (lang === 'ar') {
       console.log('[INFO] Switching to Arabic (RTL) - Native Mode');
       htmlElement.setAttribute('dir', 'rtl');
       htmlElement.setAttribute('lang', 'ar');
       
-      // Move sidebar to right
+      
       if (sidebar) sidebar.style.order = '1';
       if (mainContent) mainContent.style.flexDirection = 'row-reverse';
       
-      // Handle absolute positioned elements if needed
+      
       const langToggle = document.querySelector('.lang-toggle');
       if (langToggle) {
         langToggle.style.left = 'auto';
@@ -191,7 +214,7 @@ class SmSmAcademy {
       htmlElement.setAttribute('dir', 'ltr');
       htmlElement.setAttribute('lang', 'en');
       
-      // Move sidebar to left
+      
       if (sidebar) sidebar.style.order = '-1';
       if (mainContent) mainContent.style.flexDirection = 'row';
       
@@ -202,7 +225,7 @@ class SmSmAcademy {
       }
     }
 
-    // Update all elements with data-en and data-ar attributes
+    
     document.querySelectorAll('[data-en][data-ar]').forEach(el => {
       const text = el.getAttribute(`data-${lang}`);
       if (text) {
@@ -210,23 +233,21 @@ class SmSmAcademy {
       }
     });
 
-    // Reload subjects with current language
+    
     this.loadSubjects();
   }
 
-  /**
-   * Load subjects from API (no fallback - backend required)
-   */
+  
   async loadSubjects() {
-    // Color palette for subjects
+    
     const colorPalette = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#6366f1'];
     
     try {
-      // Fetch from API
+      
       const apiSubjects = await window.apiService.getSubjects();
       
       if (apiSubjects && apiSubjects.length > 0) {
-        // Subject Translations
+        
         const translations = {
           'Mathematics': { ar: 'الرياضيات', en: 'Mathematics' },
           'Math': { ar: 'الرياضيات', en: 'Math' },
@@ -244,9 +265,9 @@ class SmSmAcademy {
           'Computer Science': { ar: 'علوم الحاسب', en: 'Computer Science' }
         };
 
-        // Transform API data to frontend format
+        
         const subjects = apiSubjects.map((subject, index) => {
-          // Try to find translation, fallback to original name
+          
           const translation = translations[subject.name] || translations[Object.keys(translations).find(k => subject.name.includes(k))];
           const displayName = translation ? (this.currentLang === 'ar' ? translation.ar : translation.en) : subject.name;
           
@@ -272,33 +293,31 @@ class SmSmAcademy {
     }
   }
 
-  /**
-   * Load dropdown options from API (group types, education types, grades)
-   */
+  
   async loadOptions() {
     try {
       const options = await window.apiService.getOptions();
       
       if (options) {
-        // Store options for later use
+        
         this.options = options;
         
-        // Populate Group Type dropdown
+        
         if (options.groupTypes) {
           this.populateSelect('groupType', options.groupTypes, 'Select type...', 'اختر النوع...');
         }
         
-        // Populate Group Level dropdown
+        
         if (options.groupLevels) {
           this.populateSelect('groupLevel', options.groupLevels, 'Select level...', 'اختر المستوى...');
         }
         
-        // Populate Education Type dropdown
+        
         if (options.educationTypes) {
           this.populateSelect('educationType', options.educationTypes, 'Select type...', 'اختر النوع...');
         }
         
-        // Populate Grade dropdowns (config bar and registration form)
+        
         if (options.grades) {
           this.populateSelect('configGrade', options.grades, 'Select grade...', 'اختر الصف...');
           this.populateSelect('studentGrade', options.grades, 'Select your grade...', 'اختر الصف...');
@@ -311,17 +330,15 @@ class SmSmAcademy {
     }
   }
 
-  /**
-   * Populate a select element with options from API
-   */
+  
   populateSelect(selectId, options, defaultLabelEn, defaultLabelAr) {
     const select = document.getElementById(selectId);
     if (!select) return;
     
-    // Clear existing options except the first one
+    
     select.innerHTML = '';
     
-    // Add default option
+    
     const defaultOption = document.createElement('option');
     defaultOption.value = '';
     defaultOption.textContent = this.currentLang === 'ar' ? defaultLabelAr : defaultLabelEn;
@@ -329,7 +346,7 @@ class SmSmAcademy {
     defaultOption.setAttribute('data-ar', defaultLabelAr);
     select.appendChild(defaultOption);
     
-    // Add options from API
+    
     options.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt.value;
@@ -340,19 +357,15 @@ class SmSmAcademy {
     });
   }
 
-  /**
-   * Handle registration complete event
-   */
+  
   handleRegistrationComplete(event) {
     this.updateRegisteredSubjects();
     
-    // Hide active subject card
+    
     document.getElementById('activeSubjectCard').style.display = 'none';
   }
 
-  /**
-   * Update the registered subjects list
-   */
+  
   updateRegisteredSubjects() {
     const states = [SubjectState.PENDING, SubjectState.ACCEPTED, SubjectState.REJECTED];
     const registeredSubjects = [];
@@ -361,31 +374,28 @@ class SmSmAcademy {
       registeredSubjects.push(...window.stateMachine.getSubjectsByState(state));
     });
 
-    // Clear container
+    
     this.registeredContainer.innerHTML = '';
 
     if (registeredSubjects.length === 0) {
-      // Show empty state if no active subject
+      
       if (!window.stateMachine.getActiveSubject()) {
         this.canvasEmpty.style.display = 'flex';
       }
       return;
     }
 
-    // Hide empty state
+    
     this.canvasEmpty.style.display = 'none';
 
-    // Render registered subjects
+    
     registeredSubjects.forEach(subject => {
       const card = this.createRegisteredCard(subject);
       this.registeredContainer.appendChild(card);
     });
   }
 
-  /**
-   * Create a registered subject card
-   * Supports multiple registrations per subject with registration numbers
-   */
+  
   createRegisteredCard(subject) {
     const card = document.createElement('div');
     card.className = 'registered-subject-card';
@@ -396,7 +406,7 @@ class SmSmAcademy {
     const stateIcon = subject.state === SubjectState.PENDING ? '<i class="fas fa-clock"></i>' :
                       subject.state === SubjectState.ACCEPTED ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
 
-    // Show registration number if there are multiple
+    
     const regNumber = subject.registrationNumber ? ` #${subject.registrationNumber}` : '';
     const displayName = `${subject.name}${regNumber}`;
 
@@ -419,9 +429,7 @@ class SmSmAcademy {
     return card;
   }
 
-  /**
-   * Simulate admin status update (for demo purposes)
-   */
+  
   simulateStatusUpdate(subjectId, newStatus) {
     const subject = window.stateMachine.getSubject(subjectId);
     if (subject && subject.state === SubjectState.PENDING) {
@@ -434,14 +442,14 @@ class SmSmAcademy {
   }
 }
 
-// Initialize app when DOM is ready
+
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new SmSmAcademy();
 });
 
-// For demo: add keyboard shortcuts
+
 document.addEventListener('keydown', (e) => {
-  // Press 'A' to approve first pending, 'R' to reject
+  
   if (e.key === 'a' || e.key === 'A') {
     const pending = window.stateMachine.getSubjectsByState(SubjectState.PENDING)[0];
     if (pending) {

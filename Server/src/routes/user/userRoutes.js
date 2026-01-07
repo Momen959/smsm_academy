@@ -31,6 +31,9 @@ router.get('/timeslots/config', timeslotController.getTimeConfig);
 // Get applications by email (for status syncing)
 router.get('/applications/by-email/:email', applicationController.getApplicationsByEmail);
 
+// Get full application details by ID
+router.get('/applications/:id', applicationController.getApplicationDetails);
+
 // Get single application status by ID
 router.get('/applications/:id/status', applicationController.getApplicationStatus);
 

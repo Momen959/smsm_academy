@@ -1,7 +1,4 @@
-/**
- * SmSm Academy - Sidebar Component
- * Handles the subjects sidebar list
- */
+
 
 class SidebarComponent {
   constructor() {
@@ -11,18 +8,16 @@ class SidebarComponent {
   }
 
   init() {
-    // Subscribe to state changes
+    
     window.stateMachine.on('stateChange', (data) => this.handleStateChange(data));
     window.stateMachine.on('activeSubjectChange', (data) => this.handleActiveChange(data));
   }
 
-  /**
-   * Load subjects data
-   */
+  
   loadSubjects(subjects) {
     this.subjects = subjects;
     
-    // Initialize each subject in state machine
+    
     subjects.forEach(subject => {
       window.stateMachine.initSubject(subject.id, subject);
     });
@@ -30,9 +25,7 @@ class SidebarComponent {
     this.render();
   }
 
-  /**
-   * Render the sidebar
-   */
+  
   render() {
     this.container.innerHTML = '';
     
@@ -75,27 +68,21 @@ class SidebarComponent {
     });
   }
 
-  /**
-   * Handle subject click
-   */
+  
   handleSubjectClick(subjectId) {
     window.stateMachine.setActiveSubject(subjectId);
   }
 
-  /**
-   * Handle state change
-   */
+  
   handleStateChange(data) {
     this.render();
   }
 
-  /**
-   * Handle active subject change
-   */
+  
   handleActiveChange(data) {
     this.render();
   }
 }
 
-// Export for global access
+
 window.SidebarComponent = SidebarComponent;

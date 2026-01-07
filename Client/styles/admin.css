@@ -1,10 +1,6 @@
-/* =====================================================
-   SmSm Academy - Admin Panel Styles
-   ===================================================== */
 
-/* ─────────────────────────────────────────────────────
-   ADMIN LAYOUT
-   ───────────────────────────────────────────────────── */
+
+
 
 .admin-container {
   display: flex;
@@ -12,9 +8,7 @@
   background: var(--bg-primary);
 }
 
-/* ─────────────────────────────────────────────────────
-   LOGIN PAGE
-   ───────────────────────────────────────────────────── */
+
 
 .login-page {
   display: flex;
@@ -92,9 +86,7 @@
   font-weight: var(--font-medium);
 }
 
-/* ─────────────────────────────────────────────────────
-   ADMIN SIDEBAR
-   ───────────────────────────────────────────────────── */
+
 
 .admin-sidebar {
   width: 260px;
@@ -228,9 +220,7 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* ─────────────────────────────────────────────────────
-   ADMIN MAIN CONTENT
-   ───────────────────────────────────────────────────── */
+
 
 .admin-main {
   flex: 1;
@@ -265,9 +255,7 @@
   overflow-y: auto;
 }
 
-/* ─────────────────────────────────────────────────────
-   DASHBOARD STATS CARDS
-   ───────────────────────────────────────────────────── */
+
 
 .stats-grid {
   display: grid;
@@ -361,9 +349,7 @@
   color: var(--color-error);
 }
 
-/* ─────────────────────────────────────────────────────
-   APPLICATIONS TABLE
-   ───────────────────────────────────────────────────── */
+
 
 .section-card {
   background: var(--color-white);
@@ -399,7 +385,7 @@
 
 .applications-table {
   width: 100%;
-  min-width: 900px; /* Ensure table doesn't collapse */
+  min-width: 900px; 
 }
 
 .applications-table th {
@@ -526,9 +512,7 @@
   height: 18px;
 }
 
-/* ─────────────────────────────────────────────────────
-   CONFIGURATION FORMS
-   ───────────────────────────────────────────────────── */
+
 
 .config-grid {
   display: grid;
@@ -597,9 +581,7 @@
   gap: var(--space-1);
 }
 
-/* ─────────────────────────────────────────────────────
-   RESPONSIVE
-   ───────────────────────────────────────────────────── */
+
 
 @media (max-width: 1024px) {
   .admin-sidebar {
@@ -653,9 +635,7 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────
-   MODAL STYLES
-   ───────────────────────────────────────────────────── */
+
 
 .modal-overlay {
   position: fixed;
@@ -799,7 +779,7 @@
   font-size: var(--text-sm);
 }
 
-/* Config item icon */
+
 .config-item-icon {
   width: 36px;
   height: 36px;
@@ -821,7 +801,7 @@
   margin-right: var(--space-3);
 }
 
-/* Student cell in table */
+
 .student-cell {
   display: flex;
   align-items: center;
@@ -856,7 +836,7 @@
   color: var(--color-gray-500);
 }
 
-/* Status badges */
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -882,7 +862,7 @@
   color: var(--color-error);
 }
 
-/* Button variants for actions */
+
 .btn-success {
   background: var(--color-success);
   color: var(--color-white);
@@ -901,7 +881,7 @@
   background: var(--color-error-dark, #dc2626);
 }
 
-/* View sections */
+
 .view-section {
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -911,7 +891,7 @@
   opacity: 1;
 }
 
-/* Application Status Styles */
+
 .status-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
@@ -936,7 +916,7 @@
   color: var(--color-error-dark, #dc2626);
 }
 
-/* Application Row Styles */
+
 .accepted-row {
   background: rgba(16, 185, 129, 0.05);
 }

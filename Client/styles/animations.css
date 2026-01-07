@@ -1,12 +1,8 @@
-/* =====================================================
-   SmSm Academy - Animations & Transitions
-   ===================================================== */
 
-/* ─────────────────────────────────────────────────────
-   KEYFRAME ANIMATIONS
-   ───────────────────────────────────────────────────── */
 
-/* Fade In */
+
+
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -16,7 +12,7 @@
   }
 }
 
-/* Fade In Up */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -28,7 +24,7 @@
   }
 }
 
-/* Fade In Down */
+
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -40,7 +36,7 @@
   }
 }
 
-/* Fade In Left */
+
 @keyframes fadeInLeft {
   from {
     opacity: 0;
@@ -52,7 +48,7 @@
   }
 }
 
-/* Fade In Right */
+
 @keyframes fadeInRight {
   from {
     opacity: 0;
@@ -64,7 +60,7 @@
   }
 }
 
-/* Scale In */
+
 @keyframes scaleIn {
   from {
     opacity: 0;
@@ -76,7 +72,7 @@
   }
 }
 
-/* Slide In From Right (for sidebar items) */
+
 @keyframes slideInRight {
   from {
     opacity: 0;
@@ -88,7 +84,7 @@
   }
 }
 
-/* Expand Height */
+
 @keyframes expandHeight {
   from {
     max-height: 0;
@@ -100,7 +96,7 @@
   }
 }
 
-/* Collapse Height */
+
 @keyframes collapseHeight {
   from {
     max-height: 1000px;
@@ -112,7 +108,7 @@
   }
 }
 
-/* Pulse */
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -122,7 +118,7 @@
   }
 }
 
-/* Spin */
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -132,7 +128,7 @@
   }
 }
 
-/* Bounce */
+
 @keyframes bounce {
   0%, 100% {
     transform: translateY(0);
@@ -142,7 +138,7 @@
   }
 }
 
-/* Shake */
+
 @keyframes shake {
   0%, 100% {
     transform: translateX(0);
@@ -155,7 +151,7 @@
   }
 }
 
-/* Glow Pulse */
+
 @keyframes glowPulse {
   0%, 100% {
     box-shadow: 0 0 5px rgba(var(--color-primary-rgb), 0.3);
@@ -165,7 +161,7 @@
   }
 }
 
-/* Float */
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0);
@@ -175,7 +171,7 @@
   }
 }
 
-/* Progress Bar */
+
 @keyframes progress {
   0% {
     width: 0%;
@@ -185,7 +181,7 @@
   }
 }
 
-/* Ripple Effect */
+
 @keyframes ripple {
   0% {
     transform: scale(0);
@@ -197,9 +193,7 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────
-   ANIMATION UTILITY CLASSES
-   ───────────────────────────────────────────────────── */
+
 
 .animate-fade-in {
   animation: fadeIn var(--transition-base) var(--ease-out) forwards;
@@ -249,7 +243,7 @@
   animation: glowPulse 2s var(--ease-in-out) infinite;
 }
 
-/* Stagger Children */
+
 .stagger-children > * {
   opacity: 0;
   animation: fadeInUp var(--transition-slow) var(--ease-out) forwards;
@@ -266,9 +260,7 @@
 .stagger-children > *:nth-child(9) { animation-delay: 400ms; }
 .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
 
-/* ─────────────────────────────────────────────────────
-   TRANSITION CLASSES
-   ───────────────────────────────────────────────────── */
+
 
 .transition-all {
   transition: all var(--transition-base) var(--ease-in-out);
@@ -292,9 +284,7 @@
   transition: box-shadow var(--transition-base) var(--ease-in-out);
 }
 
-/* ─────────────────────────────────────────────────────
-   HOVER EFFECTS
-   ───────────────────────────────────────────────────── */
+
 
 .hover-lift {
   transition: transform var(--transition-base) var(--ease-out),
@@ -322,9 +312,7 @@
   box-shadow: var(--glow-primary);
 }
 
-/* ─────────────────────────────────────────────────────
-   EXPAND / COLLAPSE
-   ───────────────────────────────────────────────────── */
+
 
 .expandable {
   overflow: hidden;
@@ -342,7 +330,7 @@
   opacity: 1;
 }
 
-/* Grid-based expand for smoother animation */
+
 .expand-grid {
   display: grid;
   grid-template-rows: 0fr;
@@ -357,9 +345,7 @@
   overflow: hidden;
 }
 
-/* ─────────────────────────────────────────────────────
-   LOADING STATES
-   ───────────────────────────────────────────────────── */
+
 
 .loading-spinner {
   width: 24px;
@@ -387,7 +373,7 @@
 .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
 .loading-dots span:nth-child(3) { animation-delay: 0s; }
 
-/* Skeleton Loading */
+
 .skeleton {
   background: linear-gradient(
     90deg,
@@ -408,9 +394,7 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────
-   REDUCED MOTION
-   ───────────────────────────────────────────────────── */
+
 
 @media (prefers-reduced-motion: reduce) {
   *,
