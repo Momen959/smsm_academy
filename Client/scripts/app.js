@@ -29,6 +29,9 @@ class SmSmAcademy {
     // Load subjects and options from API
     this.loadSubjects();
     this.loadOptions();
+    
+    // Load saved applications from localStorage
+    this.loadSavedApplications();
 
     // Listen for registration complete
     document.addEventListener('registrationComplete', (e) => this.handleRegistrationComplete(e));
@@ -36,7 +39,108 @@ class SmSmAcademy {
     // Subscribe to state changes for registered subjects
     window.stateMachine.on('stateChange', (data) => this.updateRegisteredSubjects());
 
-    console.log('🎓 SmSm Academy initialized successfully!');
+    console.log('[INIT] SmSm Academy initialized successfully!');
+  }
+  
+  /**
+   * Load saved applications from localStorage and sync status from backend
+   */
+  async loadSavedApplications() {
+    try {
+      const savedApps = JSON.parse(localStorage.getItem('smsmApplications') || '[]');
+      
+      if (savedApps.length === 0) {
+        console.log('[INFO] No saved applications in localStorage');
+        return;
+      }
+      
+      console.log(`[INFO] Loading ${savedApps.length} saved applications from localStorage`);
+      
+      // Sync status from backend for each application that has a serverId
+      let statusUpdated = false;
+      for (const app of savedApps) {
+        if (app.serverId) {
+          try {
+            const response = await fetch(`http://localhost:5000/api/user/applications/${app.serverId}/status`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.status && app.status !== data.status) {
+                console.log(`[SYNC] Syncing status for ${app.subject?.name}: ${app.status} -> ${data.status}`);
+                app.status = data.status;
+                statusUpdated = true;
+              }
+            }
+          } catch (error) {
+            console.warn(`[WARN] Could not sync status for application ${app.serverId}:`, error.message);
+          }
+        }
+      }
+      
+      // Save updated apps back to localStorage if any status changed
+      if (statusUpdated) {
+        localStorage.setItem('smsmApplications', JSON.stringify(savedApps));
+        console.log('[SAVE] Updated localStorage with synced statuses');
+      }
+      
+      // Wait for subjects to load before restoring
+      setTimeout(() => {
+        // Create a unique registration for each saved application
+        savedApps.forEach((app, index) => {
+          // Find the subject in state machine
+          const subject = window.stateMachine.subjects.get(app.subject?.id);
+          
+          if (subject) {
+            // Create a unique registration ID based on the app
+            const registrationId = app.id || `restored_${app.subject.id}_${index}`;
+            
+            // Create registration data
+            const registrationData = {
+              ...subject,
+              registrationId: registrationId,
+              registrationNumber: index + 1,
+              config: {
+                groupType: app.groupType,
+                educationType: app.educationType,
+                grade: app.grade
+              },
+              schedule: app.schedule,
+              formData: {
+                fullName: app.fullName,
+                email: app.email,
+                phone: app.phone,
+                grade: app.grade
+              },
+              state: this.mapStatusToState(app.status),
+              subjectId: app.subject.id,
+              submittedAt: app.submittedAt
+            };
+            
+            // Add to registrations map
+            window.stateMachine.registrations.set(registrationId, registrationData);
+            console.log(`[OK] Restored application for ${app.subject.name} with status ${app.status}`);
+          }
+        });
+        
+        // Update registered subjects display
+        this.updateRegisteredSubjects();
+      }, 1500); // Wait for subjects to load
+      
+    } catch (error) {
+      console.error('Error loading saved applications:', error);
+    }
+  }
+  
+  /**
+   * Map localStorage status to SubjectState
+   */
+  mapStatusToState(status) {
+    const statusMap = {
+      'pending': SubjectState.PENDING,
+      'accepted': SubjectState.ACCEPTED,
+      'approved': SubjectState.ACCEPTED,
+      'rejected': SubjectState.REJECTED
+    };
+    return statusMap[status?.toLowerCase()] || SubjectState.PENDING;
   }
 
   /**
@@ -68,7 +172,7 @@ class SmSmAcademy {
     
     // Set RTL for Arabic
     if (lang === 'ar') {
-      console.log('🔄 Switching to Arabic (RTL) - Native Mode');
+      console.log('[INFO] Switching to Arabic (RTL) - Native Mode');
       htmlElement.setAttribute('dir', 'rtl');
       htmlElement.setAttribute('lang', 'ar');
       
@@ -83,7 +187,7 @@ class SmSmAcademy {
         langToggle.style.right = '1rem';
       }
     } else {
-      console.log('🔄 Switching to English (LTR)');
+      console.log('[INFO] Switching to English (LTR)');
       htmlElement.setAttribute('dir', 'ltr');
       htmlElement.setAttribute('lang', 'en');
       
@@ -156,13 +260,13 @@ class SmSmAcademy {
         });
         
         this.sidebar.loadSubjects(subjects);
-        console.log('✅ Subjects loaded from API:', subjects.length);
+        console.log('[OK] Subjects loaded from API:', subjects.length);
       } else {
-        console.warn('⚠️ No subjects found in database');
+        console.warn('[WARN] No subjects found in database');
         this.sidebar.loadSubjects([]);
       }
     } catch (error) {
-      console.error('❌ Could not load subjects from API:', error.message);
+      console.error('[ERROR] Could not load subjects from API:', error.message);
       console.error('   Make sure the backend server is running on http://localhost:5000');
       this.sidebar.loadSubjects([]);
     }
@@ -200,10 +304,10 @@ class SmSmAcademy {
           this.populateSelect('studentGrade', options.grades, 'Select your grade...', 'اختر الصف...');
         }
         
-        console.log('✅ Options loaded from API');
+        console.log('[OK] Options loaded from API');
       }
     } catch (error) {
-      console.error('❌ Could not load options from API:', error.message);
+      console.error('[ERROR] Could not load options from API:', error.message);
     }
   }
 
@@ -289,8 +393,8 @@ class SmSmAcademy {
     const stateClass = subject.state === SubjectState.PENDING ? 'pending' :
                        subject.state === SubjectState.ACCEPTED ? 'accepted' : 'rejected';
     
-    const stateIcon = subject.state === SubjectState.PENDING ? '⏳' :
-                      subject.state === SubjectState.ACCEPTED ? '✓' : '✗';
+    const stateIcon = subject.state === SubjectState.PENDING ? '<i class="fas fa-clock"></i>' :
+                      subject.state === SubjectState.ACCEPTED ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
 
     // Show registration number if there are multiple
     const regNumber = subject.registrationNumber ? ` #${subject.registrationNumber}` : '';
@@ -301,7 +405,7 @@ class SmSmAcademy {
       <div class="registered-subject-info">
         <div class="registered-subject-name">${displayName}</div>
         <div class="registered-subject-details">
-          <span>${subject.config?.groupType || 'N/A'} • ${subject.config?.groupLevel || 'N/A'}</span>
+          <span>${subject.schedule?.groupName || subject.config?.groupType || 'N/A'} • ${subject.config?.groupLevel || 'N/A'}</span>
           <span>${subject.schedule?.day || ''} ${subject.schedule?.time || ''}</span>
         </div>
       </div>

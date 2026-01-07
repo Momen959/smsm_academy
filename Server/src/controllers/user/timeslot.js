@@ -89,6 +89,7 @@ exports.getTimeslots = async (req, res) => {
             available: (slot.registeredStudents?.length || 0) < (slot.maxCapacity || 20),
             group: {
                 _id: slot.group?._id,
+                name: slot.group?.name,
                 type: slot.group?.type,
                 subject: slot.group?.subject?.name
             }
@@ -152,6 +153,7 @@ exports.getTimeslotGrid = async (req, res) => {
                         startTime: time.start,
                         endTime: time.end,
                         teacher: slot.teacher?.name || 'TBA',
+                        groupName: slot.group?.name || '',
                         capacity: slot.maxCapacity || 20,
                         enrolled: slot.registeredStudents?.length || 0,
                         available: (slot.registeredStudents?.length || 0) < (slot.maxCapacity || 20),

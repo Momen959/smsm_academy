@@ -169,4 +169,4 @@ class ApiService {
 // Create global API service instance
 window.apiService = new ApiService();
 
-console.log('📡 API Service initialized');
+console.log('[INIT] API Service initialized');

@@ -222,7 +222,7 @@ exports.createAndSubmit = async (req, res) => {
             });
 
         res.status(201).json({
-            success: true,
+        success: true,
             message: 'Application submitted successfully',
             data: populatedApp
         });
@@ -233,5 +233,75 @@ exports.createAndSubmit = async (req, res) => {
             success: false,
             message: error.message 
         });
+    }
+};
+
+/**
+ * Get applications by student email (for status syncing)
+ */
+exports.getApplicationsByEmail = async (req, res) => {
+    try {
+        const { email } = req.params;
+        
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        // Find student by email
+        const student = await Student.findOne({ email: email.toLowerCase() });
+        
+        if (!student) {
+            return res.json({ applications: [] });
+        }
+
+        // Get all applications for this student
+        const applications = await Application.find({ student: student._id })
+            .populate({
+                path: 'group',
+                populate: { path: 'subject', select: 'name' }
+            })
+            .populate('timeslot')
+            .sort({ createdAt: -1 });
+
+        // Format response
+        const formattedApps = applications.map(app => ({
+            _id: app._id,
+            status: app.status?.toLowerCase() || 'pending',
+            subject: app.group?.subject || null,
+            groupType: app.group?.type || 'N/A',
+            schedule: {
+                day: app.timeslot ? new Date(app.timeslot.startTime).toLocaleDateString('en-US', { weekday: 'short' }) : '',
+                time: app.timeslot ? `${new Date(app.timeslot.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` : ''
+            },
+            createdAt: app.createdAt
+        }));
+
+        res.json({ applications: formattedApps });
+    } catch (error) {
+        console.error('Error getting applications by email:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Get single application status by ID
+ */
+exports.getApplicationStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const app = await Application.findById(id);
+        
+        if (!app) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+        
+        res.json({ 
+            _id: app._id,
+            status: app.status?.toLowerCase() || 'pending'
+        });
+    } catch (error) {
+        console.error('Error getting application status:', error);
+        res.status(500).json({ message: error.message });
     }
 };

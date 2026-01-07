@@ -58,7 +58,7 @@ class FormComponent {
     // Load saved user data from localStorage (if any)
     try {
       const savedData = JSON.parse(localStorage.getItem('smsmUserData') || '{}');
-      console.log('📋 Loading saved user data:', savedData);
+      console.log('[INFO] Loading saved user data:', savedData);
       
       const fullNameInput = document.getElementById('fullName');
       const emailInput = document.getElementById('email');
@@ -204,13 +204,52 @@ class FormComponent {
       apiFormData.append('paymentProof', this.fileInput.files[0]);
     }
 
+    // Generate unique application ID
+    const applicationId = 'APP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    // Create application object for localStorage
+    const applicationData = {
+      id: applicationId,
+      fullName: localFormData.fullName,
+      email: localFormData.email,
+      phone: localFormData.phone,
+      grade: localFormData.grade,
+      subject: {
+        id: activeSubject.id,
+        name: activeSubject.name
+      },
+      groupType: activeSubject.config?.groupType || '',
+      educationType: activeSubject.config?.educationType || '',
+      schedule: {
+        day: activeSubject.schedule?.day || '',
+        time: activeSubject.schedule?.time || '',
+        teacher: activeSubject.schedule?.teacher || '',
+        timeslotId: activeSubject.schedule?.timeslotId || null,
+        groupName: activeSubject.schedule?.groupName || '' // Add group name
+      },
+      status: 'pending',
+      submittedAt: new Date().toISOString(),
+      hasPaymentProof: !!this.fileInput.files[0]
+    };
+
+    let apiSuccess = false;
     try {
       // Try to submit to backend API
       const response = await window.apiService.postFormData('/user/applications/submit', apiFormData);
-      console.log('✅ Registration submitted to API:', response);
+      console.log('[OK] Registration submitted to API:', response);
+      apiSuccess = true;
+      
+      // Update local application with server ID if available
+      if (response.data && response.data._id) {
+        applicationData.serverId = response.data._id;
+      }
     } catch (error) {
-      console.warn('⚠️ Could not submit to API, saving locally:', error.message);
+      console.warn('[WARN] Could not submit to API, saving locally only:', error.message);
     }
+
+    // Save application to localStorage
+    this.saveApplicationToLocalStorage(applicationData);
+    console.log('[SAVE] Saved application to localStorage:', applicationData);
 
     // Save user data to localStorage for future registrations
     const userDataToSave = {
@@ -219,7 +258,7 @@ class FormComponent {
       phone: localFormData.phone
     };
     localStorage.setItem('smsmUserData', JSON.stringify(userDataToSave));
-    console.log('💾 Saved user data to localStorage:', userDataToSave);
+    console.log('[SAVE] Saved user data to localStorage:', userDataToSave);
 
     // Update local state machine regardless of API success
     window.stateMachine.setFormData(activeSubject.id, localFormData);
@@ -245,6 +284,46 @@ class FormComponent {
   }
 
   /**
+   * Save application to localStorage
+   */
+  saveApplicationToLocalStorage(application) {
+    try {
+      // Get existing applications
+      const existingApps = JSON.parse(localStorage.getItem('smsmApplications') || '[]');
+      
+      // Add new application
+      existingApps.push(application);
+      
+      // Save back to localStorage
+      localStorage.setItem('smsmApplications', JSON.stringify(existingApps));
+      
+      console.log(`[INFO] Total applications in localStorage: ${existingApps.length}`);
+    } catch (error) {
+      console.error('Error saving application to localStorage:', error);
+    }
+  }
+
+  /**
+   * Get all applications from localStorage
+   */
+  static getApplicationsFromLocalStorage() {
+    try {
+      return JSON.parse(localStorage.getItem('smsmApplications') || '[]');
+    } catch (error) {
+      console.error('Error reading applications from localStorage:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get applications for a specific email
+   */
+  static getApplicationsByEmail(email) {
+    const allApps = FormComponent.getApplicationsFromLocalStorage();
+    return allApps.filter(app => app.email.toLowerCase() === email.toLowerCase());
+  }
+
+  /**
    * Show success message
    */
   showSuccessMessage() {
@@ -266,10 +345,7 @@ class FormComponent {
       z-index: 1000;
     `;
     toast.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </svg>
+      <i class="fas fa-check-circle" style="font-size: 24px;"></i>
       <div>
         <div style="font-weight: var(--font-semibold);">Registration Submitted!</div>
         <div style="font-size: var(--text-sm); opacity: 0.9;">Your application is now pending review.</div>

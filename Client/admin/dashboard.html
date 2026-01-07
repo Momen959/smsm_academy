@@ -13,8 +13,11 @@
   <link rel="stylesheet" href="../styles/components.css">
   <link rel="stylesheet" href="../styles/admin.css">
   
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎓%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/jpeg" href="../logo.jpeg">
 </head>
 <body>
   <div class="admin-container">
@@ -24,7 +27,7 @@
          ═══════════════════════════════════════════════════════ -->
     <aside class="admin-sidebar">
       <div class="admin-brand">
-        <div class="admin-brand-logo">🎓</div>
+        <div class="admin-brand-logo"><i class="fas fa-graduation-cap"></i></div>
         <div class="admin-brand-text">
           SmSm Academy
           <span>Admin Panel</span>
@@ -206,7 +209,6 @@
                     <th>Group</th>
                     <th>Schedule</th>
                     <th>Payment</th>
-                    <th>Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -221,6 +223,10 @@
         <!-- ==================== APPLICATIONS VIEW ==================== -->
         <div id="view-applications" class="view-section" style="display: none;">
           <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">All Applications</h2>
+              <p style="color: var(--color-gray-500); font-size: 0.9rem; margin: 0;">Complete history of all student applications</p>
+            </div>
             <div class="table-responsive">
               <table class="applications-table">
                 <thead>
@@ -231,7 +237,6 @@
                     <th>Schedule</th>
                     <th>Payment</th>
                     <th>Status</th>
-                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="allApplicationsTableBody"></tbody>
@@ -488,6 +493,7 @@
     </div>
   </div>
 
-  <script src="../scripts/admin/dashboard.js"></script>
+  <script src="../scripts/admin/dashboard.js?v=1736289355"></script>
 </body>
 </html>
+

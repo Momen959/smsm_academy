@@ -13,8 +13,8 @@ const applicationSchema = new mongoose.Schema({
     },
     group: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Group',
-        required: true
+        ref: 'Group'
+        // Not required - might be null for some applications
     },
     timeslot: {
         type: mongoose.Schema.Types.ObjectId,

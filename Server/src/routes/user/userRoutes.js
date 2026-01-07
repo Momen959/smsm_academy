@@ -28,4 +28,10 @@ router.get('/timeslots/grid', timeslotController.getTimeslotGrid);
 
 router.get('/timeslots/config', timeslotController.getTimeConfig);
 
+// Get applications by email (for status syncing)
+router.get('/applications/by-email/:email', applicationController.getApplicationsByEmail);
+
+// Get single application status by ID
+router.get('/applications/:id/status', applicationController.getApplicationStatus);
+
 module.exports = router;

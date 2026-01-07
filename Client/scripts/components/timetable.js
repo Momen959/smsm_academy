@@ -28,7 +28,7 @@ class TimetableComponent {
     window.stateMachine.on('configChange', async (data) => {
       // Only reload if timetable is currently expanded/visible
       if (this.container && this.container.classList.contains('expanded')) {
-        console.log('🔄 Config changed, reloading timetable...');
+        console.log('[SYNC] Config changed, reloading timetable...');
         await this.loadTimeSlots();
         this.render();
       }
@@ -45,18 +45,18 @@ class TimetableComponent {
       const subjectId = activeSubject?.id || null;
       const groupType = activeSubject?.config?.groupType || null;
       
-      console.log('📅 Loading timeslots with filters:', { subjectId, groupType });
+      console.log('[INFO] Loading timeslots with filters:', { subjectId, groupType });
       
       // Fetch from API with filters
       const response = await window.apiService.getTimeslotGrid(subjectId, groupType);
       
       if (response && response.timeSlots && response.timeSlots.length > 0) {
         this.timeSlots = response.timeSlots;
-        console.log('✅ Timeslots loaded from API');
+        console.log('[OK] Timeslots loaded from API');
         return;
       }
     } catch (error) {
-      console.warn('⚠️ Could not load timeslots from API, using generated data:', error.message);
+      console.warn('[WARN] Could not load timeslots from API, using generated data:', error.message);
     }
     
     // Fallback: generate default time slots if API fails or returns empty
@@ -144,14 +144,18 @@ class TimetableComponent {
           `;
         } else if (isAvailable) {
           // Available slot - can click to register
+          /* Updated to include group name */
           slotCell.innerHTML = `
+            <div class="slot-group" style="font-size: 0.8em; color: var(--color-primary); font-weight: bold; margin-bottom: 2px;">${slot.groupName || ''}</div>
             <span class="slot-teacher">${slot.teacher}</span>
             <span class="slot-capacity">${slot.capacity - slot.enrolled} spots left</span>
           `;
           slotCell.addEventListener('click', () => this.selectSlot(slot));
         } else {
           // Full slot
+          /* Updated to include group name */
           slotCell.innerHTML = `
+            <div class="slot-group" style="font-size: 0.8em; color: var(--color-gray-500); font-weight: bold; margin-bottom: 2px;">${slot.groupName || ''}</div>
             <span class="slot-teacher">Full</span>
           `;
         }
@@ -206,7 +210,8 @@ class TimetableComponent {
         time: slot.time,
         startTime: slot.startTime,
         endTime: slot.endTime,
-        teacher: slot.teacher
+        teacher: slot.teacher,
+        groupName: slot.groupName // Include group name
       });
     }
 

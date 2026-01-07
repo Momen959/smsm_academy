@@ -65,7 +65,7 @@ class ConfigBarComponent {
     
     // Load saved config from localStorage (for persistence)
     const savedConfig = JSON.parse(localStorage.getItem('smsmConfigData') || '{}');
-    console.log('📋 Loading saved config:', savedConfig);
+    console.log('[INFO] Loading saved config:', savedConfig);
     
     // Use saved config if subject has no config yet
     const config = subject.config || {};
@@ -156,7 +156,7 @@ class ConfigBarComponent {
       const savedConfig = JSON.parse(localStorage.getItem('smsmConfigData') || '{}');
       savedConfig[field] = value;
       localStorage.setItem('smsmConfigData', JSON.stringify(savedConfig));
-      console.log('💾 Saved config:', savedConfig);
+      console.log('[SAVE] Saved config:', savedConfig);
     }
   }
 

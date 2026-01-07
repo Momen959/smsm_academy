@@ -24,7 +24,7 @@ class AdminDashboard {
     this.setupEventListeners();
     this.setupModalListeners();
     this.loadDashboardData();
-    console.log('🎓 Admin Dashboard initialized');
+    console.log('[INIT] Admin Dashboard initialized');
   }
   
   // ═══════════════════════════════════════════════════════
@@ -142,17 +142,17 @@ class AdminDashboard {
   
   async loadDashboardData() {
     try {
-      // Load stats
-      const [applications, subjects, groupsResult] = await Promise.all([
+      // Load stats - get pending apps for dashboard and all data for counts
+      const [pendingApps, subjects, groupsResult] = await Promise.all([
         this.apiCall('/applications').catch(() => []),
         this.apiCall('/subjects').catch(() => []),
         this.apiCall('/groups').catch(() => ({ groups: [] }))
       ]);
       
-      // Update stats
-      const pendingApps = Array.isArray(applications) ? applications.filter(a => a.status === 'pending') : [];
-      document.getElementById('pendingCount').textContent = pendingApps.length;
-      document.getElementById('pendingBadge').textContent = pendingApps.length;
+      // Update pending count (applications endpoint now returns only pending)
+      const pendingCount = Array.isArray(pendingApps) ? pendingApps.length : 0;
+      document.getElementById('pendingCount').textContent = pendingCount;
+      document.getElementById('pendingBadge').textContent = pendingCount;
       
       // Update groups count
       const groups = groupsResult.groups || groupsResult || [];
@@ -163,8 +163,8 @@ class AdminDashboard {
       const subjectsCount = Array.isArray(subjects) ? subjects.length : 0;
       document.getElementById('subjectsCount').textContent = subjectsCount;
       
-      // Load applications table
-      this.renderApplicationsTable(pendingApps.slice(0, 5));
+      // Render recent pending applications on dashboard (limit to 5)
+      this.renderDashboardApplications(Array.isArray(pendingApps) ? pendingApps.slice(0, 5) : []);
       
       // Load subjects list
       this.renderSubjectsList(Array.isArray(subjects) ? subjects : []);
@@ -180,21 +180,96 @@ class AdminDashboard {
   
   async loadApplications() {
     try {
-      const applications = await this.apiCall('/applications');
-      this.renderApplicationsTable(Array.isArray(applications) ? applications : []);
+      // Fetch ALL applications for the Applications tab
+      const applications = await this.apiCall('/applications/all');
+      this.renderAllApplicationsTable(Array.isArray(applications) ? applications : []);
     } catch (error) {
       console.error('Error loading applications:', error);
     }
   }
-  
-  renderApplicationsTable(applications) {
+  // Render recent pending applications on DASHBOARD (with accept/decline buttons)
+  renderDashboardApplications(applications) {
+    console.log('[INFO] renderDashboardApplications called with', applications.length, 'applications');
     const tbody = document.getElementById('applicationsTableBody');
+    if (!tbody) {
+      console.error('[ERROR] applicationsTableBody not found!');
+      return;
+    }
+    console.log('[OK] Found applicationsTableBody element');
+    
+    if (applications.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-gray-500);">
+            No pending applications to review
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    
+    console.log('[BUILD] Building table rows with action buttons...');
+    tbody.innerHTML = applications.map(app => {
+      return `
+        <tr data-id="${app._id}" class="pending-row">
+          <td>
+            <div class="student-cell">
+              <div class="student-avatar">${(app.fullName || 'U')[0].toUpperCase()}</div>
+              <div class="student-info">
+                <div class="student-name">${app.fullName || 'Unknown'}</div>
+                <div class="student-email">${app.email || ''}</div>
+              </div>
+            </div>
+          </td>
+          <td>${app.subject?.name || 'N/A'}</td>
+          <td>${app.groupType || 'N/A'}</td>
+          <td>${app.day || ''} ${app.time || ''}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm view-payment-btn" data-image="${app.paymentScreenshot || ''}">
+              View
+            </button>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-success btn-sm approve-btn" data-id="${app._id}" title="Accept">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn btn-danger btn-sm reject-btn" data-id="${app._id}" title="Decline">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+    console.log('[OK] Table built, attaching event listeners...');
+    
+    // Add event listeners
+    tbody.querySelectorAll('.approve-btn').forEach(btn => {
+      btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'approved'));
+    });
+    
+    tbody.querySelectorAll('.reject-btn').forEach(btn => {
+      btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'rejected'));
+    });
+    
+    tbody.querySelectorAll('.view-payment-btn').forEach(btn => {
+      btn.addEventListener('click', () => this.viewPayment(btn.dataset.image));
+    });
+    
+    console.log('[OK] Event listeners attached!');
+  }
+  
+  // Render ALL applications in the APPLICATIONS TAB (full history)
+  renderAllApplicationsTable(applications) {
+    const tbody = document.getElementById('allApplicationsTableBody');
     if (!tbody) return;
     
     if (applications.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" style="text-align: center; padding: 2rem; color: var(--color-gray-500);">
+          <td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-gray-500);">
             No applications yet
           </td>
         </tr>
@@ -203,27 +278,14 @@ class AdminDashboard {
     }
     
     tbody.innerHTML = applications.map(app => {
-      const isPending = app.status === 'pending';
-      const isAccepted = app.status === 'accepted';
-      const isRejected = app.status === 'rejected';
+      const status = (app.status || '').toLowerCase().trim();
+      
+      const isAccepted = status === 'accepted' || status === 'approved';
+      const isRejected = status === 'rejected';
       
       // Status badge color
       const statusClass = isAccepted ? 'accepted' : isRejected ? 'rejected' : 'pending';
       const statusLabel = isAccepted ? 'Accepted' : isRejected ? 'Rejected' : 'Pending';
-      
-      // Action buttons - only show for pending applications
-      const actionButtons = isPending ? `
-        <button class="btn btn-success btn-sm approve-btn" data-id="${app._id}" title="Approve">
-          ✓
-        </button>
-        <button class="btn btn-danger btn-sm reject-btn" data-id="${app._id}" title="Reject">
-          ✕
-        </button>
-      ` : `
-        <span class="text-muted" style="font-size: 0.8rem; color: var(--color-gray-400);">
-          ${isAccepted ? '✓ Done' : '✕ Done'}
-        </span>
-      `;
       
       return `
         <tr data-id="${app._id}" class="${statusClass}-row">
@@ -247,47 +309,14 @@ class AdminDashboard {
           <td>
             <span class="status-badge ${statusClass}">${statusLabel}</span>
           </td>
-          <td>
-            <div class="action-buttons">
-              ${actionButtons}
-            </div>
-          </td>
         </tr>
       `;
     }).join('');
     
-    // Add event listeners for pending applications only
-    tbody.querySelectorAll('.approve-btn').forEach(btn => {
-      btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'approved'));
-    });
-    
-    tbody.querySelectorAll('.reject-btn').forEach(btn => {
-      btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'rejected'));
-    });
-    
-    // Add event listeners for view payment buttons
+    // Add event listeners for view payment buttons only (no approve/reject in this tab)
     tbody.querySelectorAll('.view-payment-btn').forEach(btn => {
       btn.addEventListener('click', () => this.viewPayment(btn.dataset.image));
     });
-    
-    // Also populate the dedicated applications view table
-    const allAppsBody = document.getElementById('allApplicationsTableBody');
-    if (allAppsBody && allAppsBody !== tbody) {
-      allAppsBody.innerHTML = tbody.innerHTML;
-      
-      // Re-attach event listeners for the allApplicationsTableBody
-      allAppsBody.querySelectorAll('.approve-btn').forEach(btn => {
-        btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'approved'));
-      });
-      
-      allAppsBody.querySelectorAll('.reject-btn').forEach(btn => {
-        btn.addEventListener('click', () => this.updateApplicationStatus(btn.dataset.id, 'rejected'));
-      });
-      
-      allAppsBody.querySelectorAll('.view-payment-btn').forEach(btn => {
-        btn.addEventListener('click', () => this.viewPayment(btn.dataset.image));
-      });
-    }
   }
   
   async updateApplicationStatus(id, status) {
@@ -373,10 +402,10 @@ class AdminDashboard {
         <div class="config-item-name">${subject.name}</div>
         <div class="config-item-actions">
           <button class="btn btn-ghost btn-icon btn-icon-sm edit-subject-btn" data-id="${subject._id}" data-name="${subject.name}">
-            ✎
+            <i class="fas fa-edit"></i>
           </button>
           <button class="btn btn-ghost btn-icon btn-icon-sm delete-subject-btn" data-id="${subject._id}">
-            ✕
+            <i class="fas fa-trash"></i>
           </button>
         </div>
       </div>
@@ -459,7 +488,7 @@ class AdminDashboard {
         <div class="config-item-meta">${group.subject?.name || ''} - ${group.teacher?.name || ''}</div>
         <div class="config-item-actions">
           <button class="btn btn-ghost btn-icon btn-icon-sm delete-group-btn" data-id="${group._id}">
-            ✕
+            <i class="fas fa-trash"></i>
           </button>
         </div>
       </div>
@@ -512,14 +541,14 @@ class AdminDashboard {
       
       return `
       <div class="config-item" data-id="${slot._id}">
-        <div class="config-item-icon">📅</div>
+        <div class="config-item-icon"><i class="fas fa-calendar-alt"></i></div>
         <div class="config-item-name">${day} ${start}-${end}</div>
         <div class="config-item-meta">
           ${slot.group?.subject?.name || 'Subject'} - ${slot.teacher?.name || 'Teacher'}
         </div>
         <div class="config-item-actions">
           <button class="btn btn-ghost btn-icon btn-icon-sm delete-timeslot-btn" data-id="${slot._id}">
-            ✕
+            <i class="fas fa-trash"></i>
           </button>
         </div>
       </div>
@@ -577,12 +606,12 @@ class AdminDashboard {
     
     container.innerHTML = teachers.map(teacher => `
       <div class="config-item" data-id="${teacher._id}">
-        <div class="config-item-icon">👨‍🏫</div>
+        <div class="config-item-icon"><i class="fas fa-chalkboard-teacher"></i></div>
         <div class="config-item-name">${teacher.name}</div>
         <div class="config-item-meta">${teacher.email || ''}</div>
         <div class="config-item-actions">
           <button class="btn btn-ghost btn-icon btn-icon-sm delete-teacher-btn" data-id="${teacher._id}">
-            ✕
+            <i class="fas fa-trash"></i>
           </button>
         </div>
       </div>

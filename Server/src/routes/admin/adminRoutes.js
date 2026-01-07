@@ -38,6 +38,7 @@ router.delete('/timeslots/:id', authMiddleware, timeslotController.deleteTimeslo
 
 // Applications
 router.get('/applications', authMiddleware, applicationController.getPendingApplications);
+router.get('/applications/all', authMiddleware, applicationController.getAllApplications);
 router.put('/applications/:id/status', authMiddleware, applicationController.reviewApplication);
 router.put('/applications/:id/timeslot', authMiddleware, applicationController.changeTimeslot);
 
