@@ -324,51 +324,59 @@ exports.getApplicationDetails = async (req, res) => {
                 path: 'group',
                 populate: { path: 'subject' }
             })
-            .populate('timeslot');
+            .populate({
+                path: 'timeslot',
+                populate: { path: 'teacher' }
+            });
         
         if (!app) {
             return res.status(404).json({ message: 'Application not found' });
         }
         
-        // Format response to match frontend expectation
+        // Handle cases where referenced documents may have been deleted
+        const studentName = app.student 
+            ? `${app.student.firstName || ''} ${app.student.lastName || ''}`.trim() 
+            : 'Unknown Student';
+        
+        const subjectName = app.group?.subject?.name || 'Deleted Subject';
+        const subjectId = app.group?.subject?._id || null;
+        
+        // Format response with fallbacks for deleted references
         const formattedApp = {
             id: app._id,
             serverId: app._id,
-            fullName: app.student?.firstName + ' ' + app.student?.lastName,
-            email: app.student?.email,
-            phone: app.student?.phone, // Assuming phone is on student model? Check schema provided later if needed.
-            // Wait, Student model has 'firstName', 'lastName', 'email', 'grade', 'educationType'. Phone might be missing on Student model based on createAndSubmit?
-            // In createAndSubmit: student = await Student.create({ firstName, lastName, email, grade, educationType });. NO PHONE in create.
-            // But form submits phone. I should fix Student model? or just return what I have.
-            // Let's assume phone is needed. I'll check Student model later, but for now I'll return what's available.
-            grade: app.student?.grade,
-            educationType: app.student?.educationType,
+            fullName: studentName || 'Unknown Student',
+            email: app.student?.email || '',
+            phone: app.student?.phone || '',
+            grade: app.student?.grade || '',
+            educationType: app.student?.educationType || '',
             subject: {
-                id: app.group?.subject?._id,
-                name: app.group?.subject?.name,
-                icon: app.group?.subject?.icon // If available
+                id: subjectId,
+                name: subjectName,
+                icon: app.group?.subject?.icon || subjectName.charAt(0) || '?'
             },
             config: {
-                groupType: app.group?.type,
-                groupLevel: app.group?.level,
-                educationType: app.student?.educationType,
-                grade: app.student?.grade
+                groupType: app.group?.type || 'N/A',
+                groupLevel: app.group?.level || 'N/A',
+                educationType: app.student?.educationType || 'N/A',
+                grade: app.student?.grade || 'N/A'
             },
             schedule: {
-                timeslotId: app.timeslot?._id,
-                day: app.timeslot ? new Date(app.timeslot.startTime).toLocaleDateString('en-US', { weekday: 'short' }) : '',
-                time: app.timeslot ? new Date(app.timeslot.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
-                teacher: app.timeslot?.teacher?.name || 'TBA', // Teacher might be populated in timeslot? Check timeslot model usually.
-                groupName: app.group?.name
+                timeslotId: app.timeslot?._id || null,
+                day: app.timeslot?.startTime 
+                    ? new Date(app.timeslot.startTime).toLocaleDateString('en-US', { weekday: 'short' }) 
+                    : 'N/A',
+                time: app.timeslot?.startTime 
+                    ? new Date(app.timeslot.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) 
+                    : 'N/A',
+                teacher: app.timeslot?.teacher?.name || 'N/A',
+                groupName: app.group?.name || 'Deleted Group'
             },
             status: app.status?.toLowerCase() || 'pending',
-            submittedAt: app.createdAt
+            submittedAt: app.createdAt,
+            // Flag to indicate if data is incomplete due to deletions
+            hasDeletedReferences: !app.group || !app.group.subject || !app.timeslot
         };
-
-        // Need to populate timeslot teacher too
-        if (app.timeslot && app.timeslot.teacher) {
-             // If populated, use it. But in the query above I didn't populate timeslot.teacher.
-        }
 
         res.json(formattedApp);
     } catch (error) {

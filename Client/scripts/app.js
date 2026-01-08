@@ -110,13 +110,19 @@ class SmSmAcademy {
         hydratedApps.forEach((app, index) => {
           const registrationId = app.id;
           
-          // Construct subject data from API response
+          // Handle cases where subject might have been deleted
+          const subjectId = app.subject?.id || null;
+          const subjectName = app.subject?.name || 'Deleted Subject';
+          
+          // Construct subject data from API response with fallbacks
           const subjectData = {
-            id: app.subject.id,
-            name: app.subject.name,
-            icon: app.subject.icon || app.subject.name?.charAt(0) || '?',
-            color: '#3b82f6', // Default color
-            meta: this.currentLang === 'ar' ? 'مجموعات متاحة' : 'Groups available'
+            id: subjectId,
+            name: subjectName,
+            icon: app.subject?.icon || subjectName.charAt(0) || '?',
+            color: '#6b7280', // Gray color for potentially deleted references
+            meta: app.hasDeletedReferences 
+                ? (this.currentLang === 'ar' ? 'بيانات محذوفة' : 'Data deleted')
+                : (this.currentLang === 'ar' ? 'مجموعات متاحة' : 'Groups available')
           };
 
           // Try to match color from sidebar if available
@@ -142,13 +148,14 @@ class SmSmAcademy {
               grade: app.grade
             },
             state: this.mapStatusToState(app.status),
-            subjectId: app.subject.id,
+            subjectId: subjectId,
             submittedAt: app.submittedAt,
-            serverId: app.id
+            serverId: app.id,
+            hasDeletedReferences: app.hasDeletedReferences
           };
 
           window.stateMachine.registrations.set(registrationId, registrationData);
-          console.log(`[OK] Restored application for ${app.subject.name} with status ${app.status}`);
+          console.log(`[OK] Restored application for ${subjectName} with status ${app.status}`);
         });
         
         this.updateRegisteredSubjects();
