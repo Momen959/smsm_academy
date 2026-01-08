@@ -80,8 +80,8 @@ class SmSmAcademy {
                     if (!app.id || app.serverId) hasChanges = true;
                     
                 } else if (response.status === 404 || response.status === 400) {
-                    // Application not found on server or invalid ID -> Remove
-                    console.warn(`[WARN] Application ${appId} not found on server (status ${response.status}), removing.`);
+                    // Application was deleted from server - silently remove from localStorage
+                    console.log(`[CLEANUP] Application ${appId} no longer exists, removing from local storage.`);
                     hasChanges = true;
                 } else {
                     // Server error (500, etc) -> Keep to try again later
@@ -240,7 +240,12 @@ class SmSmAcademy {
       }
     });
 
+    // Re-render sidebar to apply RTL/LTR layout changes
+    if (this.sidebar) {
+      this.sidebar.render();
+    }
     
+    // Also reload subjects for proper translations
     this.loadSubjects();
   }
 

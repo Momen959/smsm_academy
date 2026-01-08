@@ -66,7 +66,20 @@ class TimeslotService {
     }
 
     static async deleteTimeslot(id) {
-        return Timeslot.findByIdAndDelete(id);
+        const Application = require('../../models/Application');
+        
+        const timeslot = await Timeslot.findById(id);
+        if (!timeslot) throw new Error('Timeslot not found');
+
+        // Delete all applications that reference this timeslot
+        const deleteAppsResult = await Application.deleteMany({ timeslot: id });
+        console.log(`Deleted ${deleteAppsResult.deletedCount} applications for timeslot ${id}`);
+
+        // Delete the timeslot
+        await Timeslot.findByIdAndDelete(id);
+        console.log(`Deleted timeslot: ${id}`);
+        
+        return timeslot;
     }
 }
 

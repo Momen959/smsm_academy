@@ -37,7 +37,25 @@ class GroupService {
     }
 
     static async deleteGroup(id) {
-        return Group.findByIdAndDelete(id);
+        const Timeslot = require('../../models/Timeslot');
+        const Application = require('../../models/Application');
+        
+        const group = await Group.findById(id);
+        if (!group) throw new Error('Group not found');
+
+        // Delete all applications that reference this group
+        const deleteAppsResult = await Application.deleteMany({ group: id });
+        console.log(`Deleted ${deleteAppsResult.deletedCount} applications for group ${group.name || id}`);
+        
+        // Delete all timeslots for this group
+        const deleteTimeslotsResult = await Timeslot.deleteMany({ group: id });
+        console.log(`Deleted ${deleteTimeslotsResult.deletedCount} timeslots for group ${group.name || id}`);
+
+        // Delete the group
+        await Group.findByIdAndDelete(id);
+        console.log(`Deleted group: ${group.name || id}`);
+        
+        return group;
     }
 }
 

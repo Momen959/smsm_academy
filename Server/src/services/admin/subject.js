@@ -23,8 +23,34 @@ exports.updateSubject = async (id, data) => {
 };
 
 exports.deleteSubject = async (id) => {
-    const subject = await Subject.findByIdAndDelete(id);
+    const Group = require('../../models/Group');
+    const Timeslot = require('../../models/Timeslot');
+    const Application = require('../../models/Application');
+    
+    const subject = await Subject.findById(id);
     if (!subject) throw new Error('Subject not found');
+
+    // Find all groups for this subject
+    const groups = await Group.find({ subject: id });
+    const groupIds = groups.map(g => g._id);
+
+    // Delete all applications that reference these groups
+    if (groupIds.length > 0) {
+        const deleteAppsResult = await Application.deleteMany({ group: { $in: groupIds } });
+        console.log(`Deleted ${deleteAppsResult.deletedCount} applications for subject ${subject.name}`);
+        
+        // Delete all timeslots for these groups
+        const deleteTimeslotsResult = await Timeslot.deleteMany({ group: { $in: groupIds } });
+        console.log(`Deleted ${deleteTimeslotsResult.deletedCount} timeslots for subject ${subject.name}`);
+        
+        // Delete all groups
+        const deleteGroupsResult = await Group.deleteMany({ subject: id });
+        console.log(`Deleted ${deleteGroupsResult.deletedCount} groups for subject ${subject.name}`);
+    }
+
+    // Finally delete the subject
+    await Subject.findByIdAndDelete(id);
+    console.log(`Deleted subject: ${subject.name}`);
 
     return subject;
 };

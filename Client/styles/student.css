@@ -256,11 +256,6 @@ html[dir="rtl"] .sidebar-header {
   text-align: right;
 }
 
-html[dir="rtl"] .subject-item {
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
 .sidebar-card {
   background: var(--color-white);
   border-radius: var(--radius-xl);
@@ -376,6 +371,22 @@ html[dir="rtl"] .subject-item {
   color: var(--color-pink);
 }
 
+/* RTL: Default flex row naturally places Start (Icon) on Right and End (Arrow) on Left */
+html[dir="rtl"] .subject-item {
+  /* No special direction needed */
+}
+
+html[dir="rtl"] .subject-item:hover {
+  transform: translateX(-4px);
+}
+
+html[dir="rtl"] .subject-item:hover .subject-arrow {
+  transform: translateX(-3px);
+}
+
+html[dir="rtl"] .subject-info {
+  text-align: right;
+}
 
 
 .interaction-canvas {
