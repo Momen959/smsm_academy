@@ -13,6 +13,14 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true,
         match: /^(?:\+20|0)?1[0125]\d{8}$/
+    },
+    grade: {
+        type: String,
+        default: ''
+    },
+    educationType: {
+        type: String,
+        default: 'national'
     }
 
 }, { timestamps: true });

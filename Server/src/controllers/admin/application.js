@@ -114,23 +114,29 @@ exports.reviewApplication = async (req, res) => {
         const studentId = currentApp.student?._id || currentApp.student;
 
         // Handle capacity changes based on status transition
+        console.log('Status transition:', previousStatus, '->', status);
+        console.log('Timeslot:', currentApp.timeslot ? currentApp.timeslot._id : 'NONE');
+        console.log('Student ID:', studentId);
+
         if (status === 'Accepted' && previousStatus !== 'Accepted') {
             // Application is being approved - add student to registeredStudents
             if (currentApp.timeslot && studentId) {
                 const timeslotId = currentApp.timeslot._id || currentApp.timeslot;
-                await Timeslot.findByIdAndUpdate(timeslotId, {
+                const updateResult = await Timeslot.findByIdAndUpdate(timeslotId, {
                     $addToSet: { registeredStudents: studentId }
-                });
-                console.log('Added student to timeslot registeredStudents');
+                }, { new: true });
+                console.log('Added student to timeslot. Updated registeredStudents count:', updateResult?.registeredStudents?.length);
+            } else {
+                console.warn('WARNING: Cannot update slot - missing timeslot or studentId');
             }
         } else if (status === 'Rejected' && previousStatus === 'Accepted') {
             // Application is being rejected after being accepted - remove student
             if (currentApp.timeslot && studentId) {
                 const timeslotId = currentApp.timeslot._id || currentApp.timeslot;
-                await Timeslot.findByIdAndUpdate(timeslotId, {
+                const updateResult = await Timeslot.findByIdAndUpdate(timeslotId, {
                     $pull: { registeredStudents: studentId }
-                });
-                console.log('Removed student from timeslot registeredStudents');
+                }, { new: true });
+                console.log('Removed student from timeslot. Updated registeredStudents count:', updateResult?.registeredStudents?.length);
             }
         }
 

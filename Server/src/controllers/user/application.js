@@ -164,9 +164,14 @@ exports.createAndSubmit = async (req, res) => {
                 firstName,
                 lastName,
                 email,
+                phone: phone || '01000000000', // Default if missing
                 grade: validatedGrade,
                 educationType: validatedEducationType
             });
+        } else if (!student.phone && phone) {
+            // Update existing student with phone if they don't have one
+            student.phone = phone;
+            await student.save();
         }
 
         // Find suitable group (or use first available group for the subject)
