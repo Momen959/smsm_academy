@@ -8,8 +8,8 @@ class AdminDashboard {
     this.currentSection = 'dashboard';
     
     
-    if (!this.token && !window.location.pathname.includes('index.html')) {
-      window.location.href = 'index.html';
+    if (!this.token && !window.location.pathname.includes('login.html')) {
+      window.location.href = 'login.html';
       return;
     }
     
@@ -46,8 +46,8 @@ class AdminDashboard {
       const result = await response.json();
       
       if (!response.ok) {
-        if (response.status === 401 && !window.location.pathname.includes('index.html')) {
-          window.location.href = 'index.html';
+        if (response.status === 401 && !window.location.pathname.includes('login.html')) {
+          window.location.href = 'login.html';
           alert('Session expired. Please log in again.');
           throw new Error(result.message || 'AUTH Error');
         }
@@ -907,7 +907,7 @@ class AdminDashboard {
   
   logout() {
     localStorage.removeItem('adminToken');
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
   }
   
   showNotification(message, type = 'info') {
